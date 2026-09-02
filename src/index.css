@@ -1,0 +1,110 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 7%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+
+    --primary: 38 100% 49%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 7%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 40 20% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 38 80% 55%;
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 10% 90%;
+    --input: 40 10% 88%;
+    --ring: 38 100% 49%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 38 100% 49%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 38 100% 49%;
+    --sidebar-muted: 0 0% 50%;
+
+    --golden-light: 38 100% 60%;
+    --golden-dark: 38 100% 40%;
+    --glass-bg: 0 0% 100% / 0.75;
+    --glass-border: 0 0% 100% / 0.25;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: hsla(var(--glass-bg));
+    backdrop-filter: blur(16px);
+    border: 1px solid hsla(var(--glass-border));
+  }
+
+  .sidebar-item-active {
+    border-left: 3px solid hsl(var(--primary));
+    background: hsl(var(--sidebar-accent));
+  }
+
+  .watermark-bg {
+    position: relative;
+  }
+  .watermark-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--watermark-image);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
+/* Hide scrollbar but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}

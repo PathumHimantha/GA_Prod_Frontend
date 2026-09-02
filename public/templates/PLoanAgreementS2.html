@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="si">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>කුලියට විකිණීමේ ගිවිසුම - පිටුව 2</title>
+    <style>
+      @page {
+        size: legal;
+        margin: 20mm 15mm;
+      }
+      :root {
+        --navy: #1c3f66;
+      }
+      body {
+        font-family:
+          "Noto Serif Sinhala", "Iskoola Pota", "Times New Roman", serif;
+        font-size: 10pt;
+        color: #111;
+        line-height: 1.5;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .section-title {
+        font-size: 11pt;
+        color: var(--navy);
+        margin-bottom: 25px;
+        text-align: left;
+      }
+      .signature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 30px;
+        row-gap: 60px;
+      }
+      .signature-line {
+        border-bottom: 1px dotted #000;
+        min-height: 30px;
+        margin-bottom: 4px;
+      }
+      .signature-label {
+        font-size: 9.5pt;
+      }
+      .signature-date {
+        display: flex;
+        align-items: baseline;
+        margin-top: 4px;
+      }
+      .signature-date-label {
+        font-weight: normal;
+        min-width: 45px;
+        font-size: 9.5pt;
+      }
+      .signature-date-line {
+        border-bottom: 1px dotted #000;
+        flex: 1;
+        min-height: 20px;
+        margin-left: 5px;
+      }
+      .footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 8pt;
+        color: #666;
+        border-top: 1px solid #eee;
+        padding-top: 8px;
+      }
+      @media print {
+        .no-print {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="section-title">5. පාර්ශ්වයන්ගේ අත්සන්</div>
+
+    <div class="signature-grid">
+      <!-- Customer Signature -->
+      <div>
+        <div class="signature-line"></div>
+        <div class="signature-label">
+          කුලී ග්‍රාහකයාගේ අත්සන (පාරිභෝගිකයා)<br />{{CUSTOMER_NAME}}
+        </div>
+        <div class="signature-date">
+          <span class="signature-date-label">දිනය:</span>
+          <span class="signature-date-line">{{DATE}}</span>
+        </div>
+      </div>
+
+      <!-- Company Signature -->
+      <div>
+        <div class="signature-line"></div>
+        <div class="signature-label">
+          අයිතිකාර සමාගම වෙනුවෙන් (නිල මුද්‍රාව සමඟ)<br />
+          Golden Asia Investment (Pvt) Ltd<br />
+          {{EX_NAME}} - {{EX_DESIGNATION}}
+        </div>
+      </div>
+
+      <!-- Guarantor 1 Signature -->
+      <div>
+        <div class="signature-line"></div>
+        <div class="signature-label">
+          1 වන ඇපකරුගේ අත්සන<br />{{GRANTOR1_NAME}}
+        </div>
+      </div>
+
+      <!-- Guarantor 2 Signature -->
+      <div>
+        <div class="signature-line"></div>
+        <div class="signature-label">
+          2 වන ඇපකරුගේ අත්සන<br />{{GRANTOR2_NAME}}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

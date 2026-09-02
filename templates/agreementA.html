@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loan Agreement – {{AGREEMENT_NO}}</title>
+    <style>
+      /* ── Print & Screen styles ─────────────────────────────────── */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 13pt;
+        line-height: 1.85;
+        color: #000;
+        background: #fff;
+        padding: 0;
+      }
+
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        padding: 22mm 22mm 22mm 28mm;
+        background: #fff;
+        position: relative;
+      }
+
+      /* ── Header ────────────────────────────────────────────────── */
+      .doc-header {
+        text-align: center;
+        border-bottom: 3px double #000;
+        padding-bottom: 14px;
+        margin-bottom: 22px;
+      }
+      .doc-header .company-name {
+        font-size: 16pt;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .doc-header .doc-title {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 6px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .doc-header .agreement-no {
+        font-size: 12pt;
+        margin-top: 8px;
+        font-weight: bold;
+      }
+
+      /* ── Preamble ───────────────────────────────────────────────── */
+      .preamble {
+        margin-bottom: 18px;
+        text-align: justify;
+      }
+
+      .party-block {
+        margin: 14px 0;
+        padding: 10px 16px;
+        border-left: 3px solid #000;
+        background: #f9f9f9;
+      }
+      .party-block .party-label {
+        font-size: 10pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #555;
+        margin-bottom: 4px;
+      }
+      .party-block .party-name {
+        font-weight: bold;
+        font-size: 13pt;
+      }
+      .party-block .party-detail {
+        font-size: 11pt;
+        color: #333;
+      }
+
+      .and-divider {
+        text-align: center;
+        font-weight: bold;
+        font-size: 13pt;
+        margin: 8px 0;
+        letter-spacing: 4px;
+      }
+
+      /* ── Clauses ────────────────────────────────────────────────── */
+      .clauses {
+        margin-top: 20px;
+      }
+      .clause {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+        text-align: justify;
+      }
+      .clause-num {
+        font-weight: bold;
+        min-width: 22px;
+        flex-shrink: 0;
+        padding-top: 1px;
+      }
+      .clause-text {
+        flex: 1;
+      }
+
+      /* Highlight dynamic values */
+      .highlight {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+
+      /* ── Signature section ──────────────────────────────────────── */
+      .signatures {
+        margin-top: 30px;
+        border-top: 2px solid #000;
+        padding-top: 12px;
+      }
+      .sig-title {
+        font-weight: bold;
+        font-size: 12pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+      .sig-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 40px;
+        margin-bottom: 36px;
+      }
+      .sig-block {
+        flex: 1;
+        text-align: center;
+      }
+      .sig-line {
+        border-top: 1px solid #000;
+        margin-bottom: 6px;
+      }
+      .sig-label {
+        font-size: 10pt;
+        font-weight: bold;
+      }
+      .sig-name {
+        font-size: 10pt;
+        color: #333;
+      }
+
+      /* ── Witnesses ──────────────────────────────────────────────── */
+      .witnesses {
+        margin-top: 20px;
+        border-top: 2px solid #000;
+        padding-top: 12px;
+      }
+      .witness-title {
+        font-weight: bold;
+        font-size: 12pt;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+      .witness-desc {
+        font-size: 10.5pt;
+        margin-bottom: 20px;
+        font-style: italic;
+      }
+      .witness-block {
+        margin-bottom: 20px;
+      }
+      .witness-block .w-num {
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      .witness-field {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: 11pt;
+      }
+      .witness-field .w-label {
+        min-width: 90px;
+        font-weight: bold;
+      }
+      .witness-field .w-line {
+        flex: 1;
+        border-bottom: 1px solid #000;
+        min-height: 18px;
+      }
+
+      /* ── Footer with timestamp only on last page ─────────────────────────────────── */
+      .doc-footer {
+        margin-top: 10px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+        text-align: center;
+        font-size: 9pt;
+        color: #666;
+      }
+
+      /* Timestamp that appears only on last page */
+      .timestamp {
+        position: absolute;
+        bottom: 20px;
+        left: 28mm;
+        font-size: 8pt;
+        color: #999;
+        font-family: monospace;
+      }
+
+      /* Hide default browser page header/footer */
+      @page {
+        margin: 0;
+        size: A4;
+      }
+
+      /* Remove browser default headers */
+      @media print {
+        body {
+          padding: 0;
+          background: #fff;
+          margin: 0;
+        }
+        .page {
+          margin: 0;
+          padding: 18mm 18mm 18mm 24mm;
+          box-shadow: none;
+          page-break-after: avoid;
+          page-break-inside: avoid;
+          position: relative;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .party-block {
+          background: #f5f5f5;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        /* Hide URL, date, page number that browsers add */
+        @page {
+          margin: 0;
+        }
+        /* Remove any extra spacing at top */
+        .page:first-child {
+          margin-top: 0;
+          padding-top: 18mm;
+        }
+      }
+
+      /* ── Screen toolbar (hidden on print) ────────────────────────── */
+      .print-toolbar {
+        position: fixed;
+        top: 16px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+      }
+      .print-toolbar button {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 8px;
+        font-family: "Times New Roman", sans-serif;
+        font-size: 13pt;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-print {
+        background: #faa300;
+        color: #fff;
+      }
+      .btn-close {
+        background: #333;
+        color: #fff;
+      }
+      .btn-print:hover {
+        background: #c88200;
+      }
+      .btn-close:hover {
+        background: #000;
+      }
+      /* Text Watermark Style */
+      .watermark-text {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 100;
+        opacity: 0.1;
+        transform: rotate(-25deg);
+        font-family: "Times New Roman", serif;
+        font-size: 36pt;
+        font-weight: bold;
+        color: #2b2b2b;
+        text-align: center;
+      }
+
+      @media print {
+        .watermark-text {
+          opacity: 0.15;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          position: fixed;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Watermark Logo - appears on every page -->
+    <!-- Text Watermark HTML -->
+    <div class="watermark-text">
+      GOLDEN ASIA<br />
+      Investment (Pvt) Ltd.
+    </div>
+    <!-- Print toolbar (hidden when printing) -->
+    <div class="print-toolbar no-print">
+      <button class="btn-print" onclick="window.print()">🖨 Print</button>
+      <button class="btn-close" onclick="window.close()">✕ Close</button>
+    </div>
+
+    <div class="page">
+      <!-- ── Header ── -->
+      <div class="doc-header">
+        <div class="company-name">Golden Asia Investment Private Limited</div>
+        <div class="doc-title">Loan Agreement</div>
+        <div class="agreement-no">Agreement No: [ {{AGREEMENT_NO}} ]</div>
+      </div>
+
+      <!-- ── Preamble ── -->
+      <div class="preamble">
+        Articles of agreement entered into at
+        <strong>Kandy Road Annasigala Molagoda</strong> by and between
+      </div>
+
+      <!-- Party 1 -->
+      <div class="party-block">
+        <div class="party-label">Party of the First Part</div>
+        <div class="party-name">{{CUST_NAME}}</div>
+        <div class="party-detail">NIC No: {{CUST_NIC}}</div>
+        <div class="party-detail">Address: {{CUST_ADDRESS}}</div>
+      </div>
+
+      <div class="preamble" style="margin-top: 10px">
+        which term or expression as here in used where the context so requires
+        or admit shall mean and include
+        <strong>{{CUST_NAME}}</strong> his/her heirs, executors and
+        administrators (herein after sometimes referred to and called as the
+        party of the first part)
+      </div>
+
+      <div class="and-divider">— AND —</div>
+
+      <!-- Party 2 (fixed) -->
+      <div class="party-block">
+        <div class="party-label">Party of the Second Part</div>
+        <div class="party-name">Golden Asia Investment Private Limited</div>
+        <div class="party-detail">
+          Duly registered under No. <strong>PV 00216215</strong> as per the
+          Provisions of the Companies Act No.7 of 2007, Sri Lanka and having its
+          registered office at <strong>Kandy Road Annasigala Molagoda</strong>.
+          Which term or expression as herein used where the context so requires
+          or admit shall mean and include the said Golden Asia Investment
+          Private Limited, its executors and administrators, assigns and
+          successors (hereinafter sometimes referred to and called as the party
+          of the second part).
+        </div>
+      </div>
+
+      <!-- ── Clauses ── -->
+      <div class="clauses">
+        <div class="clause">
+          <span class="clause-num">1.</span>
+          <span class="clause-text">
+            The parties admit the fact that
+            <span class="highlight"
+              >NUWARAPAKSHA PEDIGE PRAVEEN UDARA KULATHUNGA</span
+            >
+            is the current Director of Golden Asia Investment Private Limited.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">2.</span>
+          <span class="clause-text">
+            Both parties admit that the said Director
+            <span class="highlight"
+              >NUWARAPAKSHA PEDIGE PRAVEEN UDARA KULATHUNGA</span
+            >
+            is conferred with the power to enter into any transaction and to
+            sign relevant documents.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">3.</span>
+          <span class="clause-text">
+            Both parties admit that a sum of
+            <span class="highlight">{{AMOUNT_WORDS}} (Rs. {{AMOUNT_NUM}})</span>
+            was received from the party of the first part as a loan and the
+            party of the second part admit and acknowledge the receipt of the
+            said amount of
+            <span class="highlight">{{AMOUNT_WORDS}} (Rs. {{AMOUNT_NUM}})</span>
+            in full and the party of the second part therefore renounce the
+            benefices non-numerate petunia.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">4.</span>
+          <span class="clause-text">
+            The Loan tenure relevant to this loan is limited to
+            <span class="highlight">{{PERIOD}} months</span>
+            from <span class="highlight">{{START_DATE}}</span> to
+            <span class="highlight">{{END_DATE}}</span>.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">5.</span>
+          <span class="clause-text">
+            Both parties agree that the annual interest for the whole amount is
+            <span class="highlight">{{INTEREST_RATE}}%</span>.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">6.</span>
+          <span class="clause-text">
+            The parties hereby agree that this Loan Agreement shall terminate on
+            <span class="highlight">{{END_DATE_WORDS}}</span>. {{TYPE_CLAUSE}}
+            Upon the termination date, the Borrower shall pay the principal sum
+            of
+            <span class="highlight"
+              >{{AMOUNT_WORDS}} (Rs. {{AMOUNT_NUM}}/-)</span
+            >
+            together with any outstanding interest, whereupon this Agreement
+            shall be deemed to be fully settled and terminated.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">7.</span>
+          <span class="clause-text">
+            The Party of the Second Part hereby undertakes that, in the event
+            Golden Asia Investment (Private) Limited is liquidated for any
+            reason whatsoever, priority shall be given to the settlement of this
+            loan to the Party of the First Part.<br /><br />
+            Notwithstanding the above, if the Party of the First Part intends to
+            demand repayment of the loan, either in full or in part, prior to
+            the agreed termination date, the Party of the First Part shall
+            provide not less than seven (7) days' prior written notice to the
+            Party of the Second Part. In such an event of early demand, the
+            parties agree that the agreed interest amount may be revised
+            accordingly, based on the period for which the loan has been
+            utilized.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">8.</span>
+          <span class="clause-text">
+            The party of the second part admits the fact that in case of default
+            in paying the monthly interest for three consecutive months the
+            party of the first part shall treat this agreement has come to an
+            end and to enforce the terms in this agreement the party of the
+            first part is entitled to go before any competent authority or a
+            Court of Law and to get the loaned amount with the interest.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">9.</span>
+          <span class="clause-text">
+            If the party of the first part takes action under paragraph 8 of
+            this agreement the party of the second part agrees to bear the
+            costs, legal charges incurred by the party of the first part.
+          </span>
+        </div>
+
+        <div class="clause">
+          <span class="clause-num">10.</span>
+          <span class="clause-text">
+            Both parties agree that the parties together with their heirs,
+            executors and administrators, assigns and successors are bound by
+            this agreement.
+          </span>
+        </div>
+      </div>
+      <!-- /clauses -->
+
+      <!-- ── Closing covenant ── -->
+      <div class="preamble" style="margin-top: 24px">
+        The parties both hereby covenant with each other and for themselves and
+        for their heirs, executors-administrators-and-assigns to perform-and
+        observe all the covenants-herein-contained and the party of the first
+        part <strong>{{CUST_NAME}}</strong> and
+        <strong>NUWARAPAKSHA PEDIGE PRAVEEN UDARA KULATHUNGA</strong>
+        Director party of the second part affixed the common seal of Golden Asia
+        Investment Private Limited and placed their signatures on this
+        <strong>{{SIGN_DATE_WORDS}}</strong> at
+        <strong>Kandy Road Annasigala Molagoda</strong>.
+      </div>
+
+      <!-- ── Signatures ── -->
+      <div class="signatures">
+        <div class="sig-title">Signatures</div>
+        <div class="sig-row">
+          <div class="sig-block">
+            <div style="height: 50px"></div>
+            <div class="sig-line"></div>
+            <div class="sig-label">(Party of the First Part)</div>
+            <div class="sig-name">{{CUST_NAME}}</div>
+          </div>
+          <div class="sig-block">
+            <div style="height: 50px"></div>
+            <div class="sig-line"></div>
+            <div class="sig-label">(Party of the Second Part)</div>
+            <div class="sig-name">
+              NUWARAPAKSHA PEDIGE PRAVEEN UDARA KULATHUNGA<br /><em
+                >Director – Golden Asia Investment Pvt Ltd</em
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Witnesses ── -->
+      <div class="witnesses">
+        <div class="witness-title">Witnesses</div>
+        <div class="witness-desc">
+          We do hereby declare and affirm that we are well acquainted with the
+          executants, we know their names, occupations and residences.
+        </div>
+
+        <div class="witness-block">
+          <div class="w-num">
+            01. Signature: .................................
+          </div>
+          <div class="witness-field">
+            <span class="w-label">Name:</span>P R LAK SRI RATHNAYAKA</span>
+          </div>
+          <div class="witness-field">
+            <span class="w-label">NIC No:</span>940760780V</span>
+          </div>
+          <div class="witness-field">
+            <span class="w-label">Address:</span>Kandy Road Annasigala Molagoda Kegalle</span>
+          </div>
+        </div>
+
+        <div class="witness-block">
+          <div class="w-num">
+            02. Signature: .................................
+          </div>
+          <div class="witness-field">
+            <span class="w-label">Name:</span>W H M S C DINESH BANDARA</span>
+          </div>
+          <div class="witness-field">
+            <span class="w-label">NIC No:</span>940420806V</span>
+          </div>
+          <div class="witness-field">
+            <span class="w-label">Address:</span>Kandy Road Annasigala Molagoda </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Footer ── -->
+      <div class="doc-footer">
+        Golden Asia Investment Private Limited &nbsp;|&nbsp; Reg. No. PV
+        00216215 &nbsp;|&nbsp; Kandy Road, Annasigala, Molagoda &nbsp;|&nbsp;
+        Agreement No: {{AGREEMENT_NO}}
+      </div>
+      <!-- Timestamp only on last page -->
+      <div class="timestamp">{{TIMESTAMP}}</div>
+    </div>
+    <!-- /page -->
+  </body>
+</html>

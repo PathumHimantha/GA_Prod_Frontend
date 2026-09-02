@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>2nd Reminder Letter</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 13px;
+        color: #111;
+        background: #fff;
+        padding: 50px 60px;
+        position: relative;
+        min-height: 100vh;
+      }
+
+      /* ── Watermark ── */
+      .watermark {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-35deg);
+        font-size: 72px;
+        font-weight: 900;
+        color: rgba(180, 30, 30, 0.07);
+        text-align: center;
+        white-space: nowrap;
+        pointer-events: none;
+        z-index: 0;
+        line-height: 1.2;
+        font-family: Arial, sans-serif;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+      }
+
+      .page-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── Header ── */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 3px double #8b0000;
+        padding-bottom: 14px;
+        margin-bottom: 18px;
+      }
+
+      .company-name {
+        font-size: 22px;
+        font-weight: 900;
+        color: #8b0000;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1.2;
+      }
+
+      .company-sub {
+        font-size: 11px;
+        color: #555;
+        margin-top: 3px;
+        letter-spacing: 0.5px;
+      }
+
+      .header-right {
+        text-align: right;
+        font-size: 11.5px;
+        color: #444;
+        line-height: 1.7;
+      }
+
+      /* ── Reference & Date row ── */
+      .ref-date-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 14px 0 10px;
+        font-size: 12px;
+      }
+
+      /* ── FINAL NOTICE Banner ── */
+      .final-notice-banner {
+        background: #8b0000;
+        color: #fff;
+        text-align: center;
+        padding: 7px 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin: 10px 0 16px;
+      }
+
+      /* ── Letter Title ── */
+      .letter-title-wrap {
+        text-align: center;
+        margin: 14px 0 14px;
+      }
+
+      .letter-title {
+        display: inline-block;
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #8b0000;
+        border-top: 2px solid #8b0000;
+        border-bottom: 2px solid #8b0000;
+        padding: 5px 24px;
+      }
+
+      /* ── Addressee ── */
+      .to-block {
+        margin: 16px 0 10px;
+        line-height: 1.9;
+      }
+
+      .to-block p {
+        font-size: 13px;
+      }
+      .to-block .label {
+        font-weight: 700;
+      }
+
+      /* ── Subject ── */
+      .subject-line {
+        margin: 10px 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: underline;
+      }
+
+      /* ── Details Table ── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0 18px;
+        font-size: 12px;
+      }
+
+      table th {
+        background: #8b0000;
+        color: #fff;
+        padding: 7px 10px;
+        text-align: left;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      table td {
+        border: 1px solid #ccc;
+        padding: 7px 10px;
+      }
+
+      table tr:nth-child(even) td {
+        background: #fdf5f5;
+      }
+
+      /* ── Body ── */
+      .body-text {
+        line-height: 2;
+        font-size: 13px;
+        margin-bottom: 14px;
+        text-align: justify;
+      }
+
+      .body-text .highlight {
+        font-weight: 700;
+        color: #8b0000;
+      }
+
+      /* ── Warning box ── */
+      .warning-box {
+        border: 2px solid #8b0000;
+        background: #fff5f5;
+        padding: 12px 16px;
+        margin: 16px 0;
+        font-size: 12.5px;
+        line-height: 1.8;
+        color: #8b0000;
+        font-weight: 600;
+      }
+
+      /* ── Signature ── */
+      .signature {
+        margin-top: 50px;
+        font-size: 13px;
+        line-height: 1.9;
+      }
+
+      .sig-line {
+        display: inline-block;
+        width: 220px;
+        border-bottom: 1px solid #333;
+        margin-top: 48px;
+        margin-bottom: 4px;
+      }
+
+      /* ── Footer ── */
+      .footer {
+        margin-top: 40px;
+        border-top: 1px solid #ccc;
+        padding-top: 8px;
+        font-size: 10.5px;
+        color: #777;
+        text-align: center;
+      }
+
+      @media print {
+        body {
+          padding: 30px 40px;
+        }
+        .watermark {
+          position: fixed;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Watermark -->
+    <div class="watermark">GOLDEN ASIA<br />Investment (Pvt) Ltd.</div>
+
+    <div class="page-content">
+      <!-- Letter Title -->
+      <div class="letter-title-wrap">
+        <span class="letter-title">Second &amp; Final Reminder Letter</span>
+      </div>
+
+      <!-- Addressee -->
+      <div class="to-block">
+        <p><span class="label">To,</span></p>
+        <p>{{CUSTOMER_NAME}}</p>
+        <p>{{ADDRESS}}</p>
+        <p><strong>NIC:</strong> {{CUSTOMER_NIC}}</p>
+        <p><strong>Contact:</strong> {{CONTACT_NO}}</p>
+        <span><strong>Date:</strong> {{TODAY}}</span>
+      </div>
+
+      <!-- Subject -->
+      <p class="subject-line">
+        Subject: Second &amp; Final Reminder — Outstanding Loan Repayment — Loan
+        Account No. {{LOAN_CODE}}
+      </p>
+
+      <!-- Details Table -->
+      <table>
+        <thead>
+          <tr>
+            <th>Customer Code</th>
+            <th>Loan Code</th>
+            <th>Weekly Installment</th>
+            <th>Total Arrears (Rs.)</th>
+            <th>Assigned Executive</th>
+            <th>Manager Visit Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{CUSTOMER_CODE}}</td>
+            <td>{{LOAN_CODE}}</td>
+            <td>Rs. {{WEEK_PAYMENT}}</td>
+            <td><strong>Rs. {{ARREARS}}</strong></td>
+            <td>{{VISIT_EXECUTIVE}}</td>
+            <td>{{MANAGER_VISIT_DATE}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Body -->
+      <div class="body-text">Dear <strong>{{CUSTOMER_NAME}}</strong>,</div>
+      <div class="body-text">
+        We refer to our <strong>First Reminder Letter</strong> previously issued
+        regarding your outstanding loan repayment obligations with
+        <strong>Golden Asia Investment (Pvt) Ltd.</strong> Despite our earlier
+        notice, your loan account continues to carry an overdue arrears balance
+        of <span class="highlight">Rs. {{ARREARS}}</span>, which remains
+        unsettled to date.
+      </div>
+      <div class="body-text">
+        This letter constitutes your
+        <span class="highlight">Second and Final Formal Notice</span>. You are
+        hereby required to settle the full outstanding amount within
+        <strong>07 (seven) days</strong> from the date of this letter. Our
+        assigned executive <strong>{{VISIT_EXECUTIVE}}</strong> has already
+        visited your premises on <strong>{{MANAGER_VISIT_DATE}}</strong> in an
+        effort to resolve this matter amicably.
+      </div>
+
+      <!-- Warning Box -->
+      <div class="warning-box">
+        ⚠ WARNING: Failure to settle the outstanding arrears of Rs. {{ARREARS}}
+        within 07 days of this notice will compel us to initiate legal recovery
+        proceedings against you without further notice. This may result in
+        additional legal costs and damage to your credit standing.
+      </div>
+
+      <div class="body-text">
+        We strongly urge you to act immediately. Please visit your branch or
+        contact us on the details provided below to arrange repayment before the
+        deadline expires.
+      </div>
+
+      <!-- Signature -->
+      <div class="signature">
+        <p>Yours faithfully,</p>
+        <div class="sig-line"></div>
+        <p><strong>Branch Manager</strong></p>
+        <p>Golden Asia Investment (Pvt) Ltd.</p>
+        <p>{{BRANCH_NAME}} Branch</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        Golden Asia Investment (Private) Limited &nbsp;|&nbsp; {{BRANCH_NAME}}
+        Branch &nbsp;|&nbsp; This is a system-generated letter. For inquiries
+        please contact your branch.
+      </div>
+    </div>
+  </body>
+</html>

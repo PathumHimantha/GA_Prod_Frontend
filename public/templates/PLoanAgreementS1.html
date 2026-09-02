@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="si">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>කුලියට විකිණීමේ ගිවිසුම - පිටුව 1</title>
+    <style>
+      @page {
+        size: legal;
+        margin: 20mm 15mm;
+      }
+      :root {
+        --navy: #1c3f66;
+      }
+      body {
+        font-family:
+          "Noto Serif Sinhala", "Iskoola Pota", "Times New Roman", serif;
+        font-size: 10pt;
+        color: #111;
+        line-height: 1.4;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .header {
+        text-align: left;
+        margin-bottom: 10px;
+      }
+      .company-name {
+        font-weight: bold;
+        font-size: 15pt;
+        color: var(--navy);
+        letter-spacing: 0.3px;
+      }
+      .company-sub {
+        font-size: 9pt;
+        margin-top: 2px;
+        color: #333;
+      }
+      .title-band {
+        background: var(--navy);
+        color: #fff;
+        text-align: center;
+        font-weight: bold;
+        font-size: 12.5pt;
+        padding: 8px 10px;
+        margin: 10px 0 12px 0;
+      }
+      .sub-header {
+        text-align: left;
+        font-size: 9.5pt;
+        margin-bottom: 12px;
+        line-height: 1.6;
+      }
+      .sub-header .date-field {
+        display: inline-block;
+        border-bottom: 1px dotted #000;
+        padding: 0 3px;
+      }
+      .section {
+        margin-bottom: 10px;
+      }
+      .section-title {
+        font-size: 11pt;
+        color: var(--navy);
+        margin-bottom: 4px;
+      }
+      .field-row {
+        display: flex;
+        margin-bottom: 3px;
+        align-items: baseline;
+      }
+      .field-label {
+        font-weight: normal;
+        min-width: 190px;
+        font-size: 9.5pt;
+      }
+      .field-value {
+        border-bottom: 1px dotted #000;
+        flex: 1;
+        padding: 0 5px;
+        min-height: 20px;
+        font-size: 9.5pt;
+      }
+      .field-value-full {
+        border-bottom: 1px dotted #000;
+        flex: 1;
+        padding: 0 5px;
+        min-height: 20px;
+        font-size: 9.5pt;
+      }
+      .clause {
+        margin-bottom: 6px;
+        font-size: 9.5pt;
+        text-align: justify;
+      }
+      .clause-number {
+        font-weight: bold;
+        margin-right: 3px;
+      }
+      .guarantor-section {
+        margin-top: 12px;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+      }
+      .guarantor-section .section-title {
+        font-size: 11pt;
+      }
+      .guarantor-intro {
+        font-size: 9.5pt;
+        margin-bottom: 8px;
+        text-align: justify;
+      }
+      .guarantor-block {
+        margin-top: 10px;
+        display: flex;
+        gap: 20px;
+      }
+      .guarantor-block .guarantor-label {
+        font-weight: bold;
+        font-size: 9.5pt;
+        min-width: 90px;
+      }
+      .guarantor-block .guarantor-col {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+        align-items: baseline;
+      }
+      .guarantor-field-label {
+        font-weight: normal;
+        min-width: 90px;
+        font-size: 9.5pt;
+        white-space: nowrap;
+      }
+      .guarantor-value {
+        border-bottom: 1px dotted #000;
+        flex: 1;
+        padding: 0 5px;
+        min-height: 20px;
+        font-size: 9.5pt;
+      }
+      .guarantor-address-row {
+        display: flex;
+        margin-top: 4px;
+        align-items: baseline;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 8pt;
+        color: #666;
+        border-top: 1px solid #eee;
+        padding-top: 8px;
+      }
+      @media print {
+        .no-print {
+          display: none;
+        }
+        body {
+          font-size: 9.5pt;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="company-name">GOLDEN ASIA INVESTMENT (PVT) LTD</div>
+      <div class="company-sub">
+        මුදල් හා ආයෝජන පහසුකම් සේවාව | Financial &amp; Investment Solutions
+      </div>
+    </div>
+
+    <div class="title-band">
+      කුලියට විකිණීමේ ගිවිසුම (HIRE PURCHASE AGREEMENT)
+    </div>
+
+    <div class="sub-header">
+      මෙම ගිවිසුම <span class="date-field">{{YEAR}}</span> ක් වූ
+      <span class="date-field">{{MONTH}}</span>
+      මස
+      <span class="date-field">{{DAY}}</span>
+      වන දින පළමු පාර්ශ්වය වන Golden Asia Investment (Pvt) Ltd (PV 00216215)
+      (මෙයින් සිට "අයිතිකාර සමාගම" ලෙස හඳුන්වන) සහ පහත සඳහන් දෙවන පාර්ශ්වය
+      ("කුලී ග්‍රාහකයා") අතර ඇති කරගන්නා ලදී.
+    </div>
+
+    <!-- Section 1: Parties -->
+    <div class="section">
+      <div class="section-title">1. පාර්ශ්වයන්ගේ විස්තර</div>
+      <div class="field-row">
+        <span class="field-label">කුලී ග්‍රාහකයාගේ නම (පාරිභෝගිකයා):</span>
+        <span class="field-value-full">{{CUSTOMER_NAME}}</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">ජාතික හැඳුනුම්පත් අංකය:</span>
+        <span class="field-value-full">{{CUSTOMER_NIC}}</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">ස්ථිර ලිපිනය:</span>
+        <span class="field-value-full">{{ADDRESS}}</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">දුරකථන අංකය:</span>
+        <span class="field-value-full">{{PHONE}}</span>
+      </div>
+    </div>
+
+    <!-- Section 2: Goods Description -->
+    <div class="section">
+      <div class="section-title">2. භාණ්ඩයේ සහ ගෙවීම්වල විස්තර (උපලේඛනය)</div>
+      <div class="field-row">
+        <span class="field-label">ලබාදෙන භාණ්ඩය සහ මාදිලිය:</span>
+        <span class="field-value-full"
+          >{{GOODS_DESCRIPTION}} - {{PRODUCT_ID}}</span
+        >
+      </div>
+      <div class="field-row">
+        <span class="field-label">භාණ්ඩයේ මුළු වටිනාකම:</span>
+        <span class="field-value-full">රු. {{LOAN_AMOUNT}}.00</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">ආරම්භක / මුලික ගෙවීම (Down Payment):</span>
+        <span class="field-value-full"
+          >ප්‍රවාහන ගාස්තුව හා ලේඛන ගාස්තුව පමණි
+        </span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">පොලී අනුපාතය:</span>
+        <span class="field-value-full">0% (සම්පූර්ණයෙන්ම පොලී රහිතයි)</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">ගෙවීම් වාරික ගණන:</span>
+        <span class="field-value-full">සමාන සති {{PERIOD}} කින්</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">සතිපතා ගෙවිය යුතු වාරික මුදල:</span>
+        <span class="field-value-full"
+          >රු. {{WEEK_PAYMENT}} (මුළු වටිනාකම ÷ {{PERIOD}})</span
+        >
+      </div>
+    </div>
+
+    <!-- Section 3: Terms and Conditions -->
+    <div class="section">
+      <div class="section-title">3. ප්‍රධාන කොන්දේසි සහ රෙගුලාසි</div>
+
+      <div class="clause">
+        <span class="clause-number">1.</span>
+        <strong>ගෙවීම් ක්‍රමය:</strong> කුලී ග්‍රාහකයා විසින් භාණ්ඩයේ මුළු
+        වටිනාකම කිසිදු පොලියකින් තොරව (0% Interest) සහ මුලික ගෙවීමකින් තොරව
+        සතිපතා වාරික {{PERIOD}} කින් ගෙවා නිම කිරීමට එකඟ වේ. සෑම සති කෙනෙහිම
+        නියමිත දිනට පෙර අදාළ වාරික මුදල ගෙවිය යුතුය.
+      </div>
+
+      <div class="clause">
+        <span class="clause-number">2.</span>
+        <strong>භාණ්ඩයේ හිමිකම (Ownership):</strong> සති {{PERIOD}} හි සියලුම
+        වාරික මුදල් සම්පූර්ණයෙන්ම ගෙවා නිම කරන තෙක් භාණ්ඩයේ පූර්ණ අයිතිය Golden
+        Asia Investment (Pvt) Ltd සමාගම සතුව පවතින අතර, සියලු වාරික ගෙවා නිම කළ
+        පසු හිමිකම කුලී ග්‍රාහකයා වෙත පැවරේ.
+      </div>
+
+      <div class="clause">
+        <span class="clause-number">3.</span>
+        <strong>නඩත්තුව සහ හානි (Maintenance &amp; Damage):</strong> ගිවිසුම්
+        කාලසීමාව තුළ භාණ්ඩ සුරක්ෂිතව පවත්වාගෙන යාම කුලී ග්‍රාහකයාගේ වගකීමකි.
+        භාණ්ඩයට සිදුවන කිසිදු හානියක්, විනාශයක් හෝ නැතිවීමක් වෙනුවෙන් අයිතිකාර
+        සමාගම වගකියනු නොලැබේ.
+      </div>
+
+      <div class="clause">
+        <span class="clause-number">4.</span>
+        <strong>වගකීම් සහතිකය (Repair Warranty):</strong> මෙම භාණ්ඩ සඳහා බලපානු
+        ලබන්නේ නිෂ්පාදිත සමාගම (Manufacturer) විසින් ලබාදෙන අලුත්වැඩියා වගකීම්
+        සහතිකය (Repair Warranty) පමණි. කිසිදු හේතුවක් මත භාණ්ඩ මාරු කර දීමක්
+        (Replacement/Exchange) සිදු නොකෙරේ. තාක්ෂණික දෝෂ සඳහා පාරිභෝගිකයා සෘජුවම
+        නිෂ්පාදිත සමාගම හා සම්බන්ධ විය යුතුය.
+      </div>
+
+      <div class="clause">
+        <span class="clause-number">5.</span>
+        <strong>ලිපිනය වෙනස් වීම දැනුම් දීම:</strong> කුලී ග්‍රාහකයාගේ පදිංචි
+        ලිපිනය හෝ දුරකථන අංකය වෙනස් වන්නේ නම් ඒ බව දින 7ක් ඇතුළත අයිතිකාර සමාගම
+        වෙත ලිඛිතව දැනුම් දිය යුතුය.
+      </div>
+
+      <div class="clause">
+        <span class="clause-number">6.</span>
+        <strong>ගෙවීම් පැහැර හැරීම සහ භාණ්ඩය නැවත ලබාගැනීම:</strong> කුලී
+        ග්‍රාහකයා අනුක්‍රමිකව සතිපතා වාරික ගෙවීම් පැහැර හරිනු ලැබුවහොත්, පූර්ව
+        දැනුම්දීමකින් තොරව භාණ්ඩ නැවත අත්පත් කරගැනීමට හෝ හිඟ මුදල් අය කරගැනීමට
+        සමාගමට පූර්ණ නීතිමය බලය ඇත.
+      </div>
+    </div>
+
+    <!-- Section 4: Guarantors -->
+    <div class="guarantor-section">
+      <div class="section-title">4. ඇපකරුවන්ගේ ප්‍රකාශය (Guarantors)</div>
+      <div class="guarantor-intro">
+        කුලී ග්‍රාහකයා විසින් ඉහත සඳහන් සතිපතා වාරික ගෙවීම් පැහැර හරිනු
+        ලැබුවහොත්, එම හිඟ මුදල් ගෙවා නිම කිරීමට අප ඇපකරුවන් ලෙස බැඳී සිටිමු.
+      </div>
+
+      <div>
+        <div class="guarantor-block">
+          <span class="guarantor-label">1 වන ඇපකරු:</span>
+          <div class="guarantor-col">
+            <span class="guarantor-field-label">නම:</span>
+            <span class="guarantor-value">{{GRANTOR1_NAME}}</span>
+          </div>
+          <div class="guarantor-col">
+            <span class="guarantor-field-label">ජා.හැ.අංකය:</span>
+            <span class="guarantor-value">{{GRANTOR1_NIC}}</span>
+          </div>
+        </div>
+        <div class="guarantor-address-row">
+          <span class="guarantor-field-label">ලිපිනය:</span>
+          <span class="guarantor-value">{{GRANTOR1_ADDRESS}}</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px">
+        <div class="guarantor-block">
+          <span class="guarantor-label">2 වන ඇපකරු:</span>
+          <div class="guarantor-col">
+            <span class="guarantor-field-label">නම:</span>
+            <span class="guarantor-value">{{GRANTOR2_NAME}}</span>
+          </div>
+          <div class="guarantor-col">
+            <span class="guarantor-field-label">ජා.හැ.අංකය:</span>
+            <span class="guarantor-value">{{GRANTOR2_NIC}}</span>
+          </div>
+        </div>
+        <div class="guarantor-address-row">
+          <span class="guarantor-field-label">ලිපිනය:</span>
+          <span class="guarantor-value">{{GRANTOR2_ADDRESS}}</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

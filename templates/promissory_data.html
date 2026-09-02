@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{AGREEMENT_NO}}</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #fff;
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+      }
+
+      /* A5 exact positioning */
+      .print-area {
+        width: 148mm;
+        height: 210mm;
+        margin: 0 auto;
+        padding: 0;
+        position: relative;
+        background: transparent;
+      }
+
+      /* Amount in numbers - top area (Rs. 1,500,000.00) */
+      .amount-figure {
+        position: absolute;
+        top: 14mm; /* Reduced from 38mm to 15mm */
+        right: 65mm;
+        font-weight: bold;
+        font-size: 14pt;
+        font-family: "Times New Roman", Times, serif;
+      }
+
+      /* Customer Name - after "promises to pay:" */
+      .customer-name {
+        position: absolute;
+        top: 51mm; /* Reduced from 78mm to 55mm */
+        left: 5mm;
+        font-weight: bold;
+        font-size: 11pt;
+      }
+
+      /* NIC Number - below name */
+      .customer-nic {
+        position: absolute;
+        top: 59mm; /* Reduced from 88mm to 65mm */
+        left: 40mm;
+        font-size: 11pt;
+      }
+
+      /* Address - below NIC */
+      .customer-address {
+        position: absolute;
+        top: 67mm; /* Reduced from 96mm to 73mm */
+        left: 5mm;
+        font-size: 11pt;
+      }
+
+      /* Amount in words - "One Million Five Hundred Thousand Only" */
+      .amount-words {
+        position: absolute;
+        top: 75mm; /* Reduced from 105mm to 82mm */
+        left: 37mm;
+        right: 25mm;
+        font-size: 11pt;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+
+      /* Date if needed */
+      .date {
+        position: absolute;
+        bottom: 55mm;
+        left: 15mm;
+        font-size: 10pt;
+      }
+
+      @media print {
+        @page {
+          size: A5;
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background: transparent;
+        }
+        .print-area {
+          margin: 0;
+          padding: 0;
+        }
+        .print-toolbar {
+          display: none;
+        }
+      }
+
+      .print-toolbar {
+        position: fixed;
+        top: 16px;
+        right: 20px;
+        z-index: 100;
+      }
+      .print-toolbar button {
+        padding: 10px 22px;
+        background: #faa300;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+      .btn-close {
+        background: #333 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="print-area">
+      <!-- Amount in Numbers (top right) -->
+      <div class="amount-figure">Rs. {{AMOUNT_NUM}}</div>
+
+      <!-- Customer Name -->
+      <div class="customer-name">{{CUST_NAME}}</div>
+
+      <!-- NIC Number -->
+      <div class="customer-nic">{{CUST_NIC}}</div>
+
+      <!-- Address -->
+      <div class="customer-address">{{CUST_ADDRESS}}</div>
+
+      <!-- Amount in Words -->
+      <div class="amount-words">{{AMOUNT_WORDS}} Only.</div>
+    </div>
+
+    <script>
+      // Auto-print when loaded (optional)
+      // window.onload = function() { setTimeout(function() { window.print(); }, 500); }
+    </script>
+  </body>
+</html>
