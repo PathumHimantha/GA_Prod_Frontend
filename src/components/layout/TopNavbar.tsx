@@ -73,7 +73,7 @@ const TopNavbar = ({ onToggleSidebar }: TopNavbarProps) => {
       <div className="flex-1" />
 
       {/* ── Notification Bell (self-contained) ── */}
-      <NotificationBell />
+      {/* <NotificationBell /> */}
 
       {/* ── Profile Popover ── */}
       <Popover>
@@ -125,7 +125,7 @@ const TopNavbar = ({ onToggleSidebar }: TopNavbarProps) => {
 
           {/* Menu items */}
           <div className="py-1 bg-card">
-            <button
+            {/* <button
               onClick={() => navigate("/dashboard/my-profile")}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
             >
@@ -143,7 +143,7 @@ const TopNavbar = ({ onToggleSidebar }: TopNavbarProps) => {
                 <Settings size={14} className="text-muted-foreground" />
               </div>
               <span>Settings</span>
-            </button>
+            </button> */}
 
             <Separator />
 

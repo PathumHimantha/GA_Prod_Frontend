@@ -20,19 +20,15 @@ const Dashboard = () => {
         </h1>
       </div>
 
-      {searchTerm ? (
-        <CustomerProfile initialSearch={searchTerm} />
-      ) : (
-        <>
-          <FloatForm />
+      {/* <CustomerProfile initialSearch={searchTerm} />
 
-          {/* <ExecutiveOverview /> */}
-          <OverviewStats />
-          {(user?.status === "admin" ||
-            user?.status === "zone_head" ||
-            user?.status === "regional_manager") && <RouteOverview />}
-        </>
-      )}
+      <FloatForm />
+
+      <ExecutiveOverview />
+      <OverviewStats />
+      {(user?.status === "admin" ||
+        user?.status === "zone_head" ||
+        user?.status === "regional_manager") && <RouteOverview />} */}
     </div>
   );
 };
