@@ -21,7 +21,7 @@ const Login = () => {
 
     const result = await login(email, password);
     if (result.success) {
-      navigate("/dashboard");
+      navigate("/dashboard/products");
     } else {
       setError(result.error || "Invalid email or password");
     }
