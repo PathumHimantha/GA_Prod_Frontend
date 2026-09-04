@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Catalog</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
+          sans-serif;
+        color: #111827;
+        background: #fff;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+      .catalog-header {
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .catalog-header h1 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .catalog-header p {
+        font-size: 11px;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+      .catalog-header .rule {
+        border-bottom: 2px solid #d1d5db;
+        margin-top: 8px;
+      }
+      .catalog-page {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 8px;
+        height: 265mm;
+        page-break-after: always;
+      }
+      .catalog-page:last-child {
+        page-break-after: auto;
+      }
+      .catalog-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .catalog-card .image-wrap {
+        height: 55%;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .catalog-card .image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .catalog-card .info {
+        flex: 1;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+      }
+      .catalog-card .title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 6px;
+        margin-bottom: 2px;
+      }
+      .catalog-card .name {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .catalog-card .code {
+        font-size: 9px;
+        color: #6b7280;
+        font-family: "Courier New", monospace;
+        background: #f3f4f6;
+        padding: 1px 5px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+      .catalog-card .category {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 500;
+        color: #2563eb;
+        background: #eff6ff;
+        padding: 1px 6px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        width: fit-content;
+      }
+      .catalog-card ul.desc {
+        list-style: none;
+        margin: 4px 0;
+        padding: 0;
+      }
+      .catalog-card ul.desc li {
+        font-size: 9.5px;
+        color: #4b5563;
+        line-height: 1.3;
+        display: flex;
+        gap: 4px;
+        align-items: flex-start;
+      }
+      .catalog-card ul.desc li::before {
+        content: "•";
+        color: #9ca3af;
+      }
+      .catalog-card .price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding-top: 4px;
+        margin-top: 4px;
+        border-top: 1px solid #f3f4f6;
+      }
+      .catalog-card .price {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .catalog-card .retail-price {
+        font-size: 10px;
+        color: #9ca3af;
+        text-decoration: line-through;
+      }
+      .catalog-footer {
+        text-align: center;
+        font-size: 9px;
+        color: #6b7280;
+        margin-top: 8px;
+        border-top: 1px solid #d1d5db;
+        padding-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="catalog-header">
+      Product Catalog
+      <p id="catalog-date"></p>
+
+      <div class="rule"></div>
+    </div>
+    <div id="catalog-content"></div>
+
+    <!-- CATALOG_DATA -->
+
+    <script>
+      (function () {
+        var products = window.__CATALOG_PRODUCTS__ || [];
+        var dateStr = window.__CATALOG_DATE__ || "";
+        document.getElementById("catalog-date").textContent = dateStr
+          ? "Generated on " + dateStr
+          : "";
+
+        var PER_PAGE = 4;
+        var container = document.getElementById("catalog-content");
+
+        function escapeHtml(str) {
+          if (str == null) return "";
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function formatMoney(n) {
+          var num = typeof n === "string" ? parseFloat(n) : n;
+          if (isNaN(num)) num = 0;
+          return "Rs. " + num.toFixed(2);
+        }
+
+        function buildCard(p) {
+          var descItems = (p.descriptionPoints || [])
+            .map(function (point) {
+              return "<li><span>" + escapeHtml(point) + "</span></li>";
+            })
+            .join("");
+
+          var imageHtml = p.image
+            ? '<img src="' +
+              p.image +
+              '" alt="' +
+              escapeHtml(p.name) +
+              '" onerror="this.style.display=\'none\'" />'
+            : '<div style="color:#d1d5db;font-size:11px;">No image</div>';
+
+          var retailHtml =
+            p.retailPrice && p.retailPrice > p.price
+              ? '<span class="retail-price">' +
+                formatMoney(p.retailPrice) +
+                "</span>"
+              : "";
+
+          return (
+            '<div class="catalog-card">' +
+            '<div class="image-wrap">' +
+            imageHtml +
+            "</div>" +
+            '<div class="info">' +
+            "<div>" +
+            '<div class="title-row">' +
+            '<div class="name">' +
+            escapeHtml(p.name) +
+            "</div>" +
+            '<div class="code">' +
+            escapeHtml(p.productId) +
+            "</div>" +
+            "</div>" +
+            '<div class="category">' +
+            escapeHtml(p.category) +
+            "</div>" +
+            (descItems ? '<ul class="desc">' + descItems + "</ul>" : "") +
+            "</div>" +
+            '<div class="price-row">' +
+            '<span class="price">' +
+            formatMoney(p.price) +
+            "</span>" +
+            retailHtml +
+            "</div>" +
+            "</div>" +
+            "</div>"
+          );
+        }
+
+        var pagesHtml = "";
+        for (var i = 0; i < products.length; i += PER_PAGE) {
+          var pageProducts = products.slice(i, i + PER_PAGE);
+          var cardsHtml = pageProducts.map(buildCard).join("");
+          var emptyHtml = "";
+          for (var e = 0; e < PER_PAGE - pageProducts.length; e++) {
+            emptyHtml += '<div style="visibility:hidden;"></div>';
+          }
+          pagesHtml +=
+            '<div class="catalog-page">' + cardsHtml + emptyHtml + "</div>";
+        }
+        container.innerHTML = pagesHtml;
+
+        // Wait for images to load, then trigger print
+        var images = container.querySelectorAll("img");
+        var remaining = images.length;
+
+        function tryPrint() {
+          window.focus();
+          window.print();
+        }
+
+        function onImageDone() {
+          remaining--;
+          if (remaining <= 0) setTimeout(tryPrint, 150);
+        }
+
+        if (remaining === 0) {
+          setTimeout(tryPrint, 100);
+        } else {
+          images.forEach(function (img) {
+            if (img.complete) {
+              onImageDone();
+            } else {
+              img.addEventListener("load", onImageDone);
+              img.addEventListener("error", onImageDone);
+            }
+          });
+        }
+
+        window.addEventListener("afterprint", function () {
+          window.close();
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -63,6 +63,11 @@ const menuGroups: MenuGroup[] = [
         path: "/dashboard/print-docs",
         icon: FileText,
       },
+      {
+        label: "Print Products",
+        path: "/dashboard/print-products",
+        icon: TrendingUp,
+      },
     ],
   },
   {
