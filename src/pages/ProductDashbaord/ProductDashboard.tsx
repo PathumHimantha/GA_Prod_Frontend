@@ -76,14 +76,16 @@ const ProductDashboard = () => {
   });
   const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
 
-  // Fetch products
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/products?page=1&limit=100`);
+      // Always use bypassCache to avoid stale data
+      const response = await fetch(
+        `${API_BASE_URL}/products?page=1&limit=100&bypassCache=true`,
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
