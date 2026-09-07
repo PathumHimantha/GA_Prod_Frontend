@@ -6,8 +6,6 @@ import {
   Package,
   Search,
   Filter,
-  Plus,
-  Minus,
   TrendingUp,
   TrendingDown,
   Percent,
@@ -15,6 +13,8 @@ import {
   RefreshCw,
   X,
   Calendar,
+  Send,
+  CheckCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,9 +48,19 @@ const ProductDashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [cart, setCart] = useState<{ [key: number]: number }>({});
-  const [showCart, setShowCart] = useState(false);
+  const [requesting, setRequesting] = useState<{ [key: number]: boolean }>({});
+  const [requestSuccess, setRequestSuccess] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedProductForRequest, setSelectedProductForRequest] =
+    useState<Product | null>(null);
+  const [requestNotes, setRequestNotes] = useState("");
+  // ✅ Success/Error Message States
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+
   // Helper function to get numeric price
   const getNumericPrice = (price: string | number): number => {
     return typeof price === "string" ? parseFloat(price) : price;
@@ -70,6 +80,8 @@ const ProductDashboard = () => {
   const loadProducts = async () => {
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
+    setErrorMessage(null);
     try {
       const response = await fetch(`${API_BASE_URL}/products?page=1&limit=100`);
       if (!response.ok) {
@@ -138,7 +150,7 @@ const ProductDashboard = () => {
     return { total, available, outOfStock, onSale };
   }, [products]);
 
-  // Filter products by category and search
+  // Filter products by category and search - SHOW ALL ACTIVE PRODUCTS (including out of stock)
   const filteredProducts = useMemo(() => {
     let filtered = products;
 
@@ -157,51 +169,89 @@ const ProductDashboard = () => {
       );
     }
 
-    filtered = filtered.filter((p) => p.status === "active" && p.stock > 0);
+    // Show all active products (including out of stock)
+    filtered = filtered.filter((p) => p.status === "active");
 
     return filtered;
   }, [products, selectedCategory, searchTerm]);
 
-  // Cart functions
-  const addToCart = (productId: number) => {
-    setCart((prev) => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1,
-    }));
-  };
+  // Handle product request
+  const handleRequestProduct = async (product: Product) => {
+    // Get user info from localStorage or context
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+      user = userStr ? JSON.parse(userStr) : null;
+    } catch (e) {
+      console.error("Error parsing user data:", e);
+    }
 
-  const removeFromCart = (productId: number) => {
-    setCart((prev) => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId] -= 1;
+    if (!user) {
+      setErrorMessage("Please login to request products");
+      setTimeout(() => setErrorMessage(null), 5000);
+      return;
+    }
+
+    setRequesting((prev) => ({ ...prev, [product.id]: true }));
+    setRequestSuccess((prev) => ({ ...prev, [product.id]: false }));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+          requested_by: user.name || user.username || "Unknown",
+          requested_by_id: user.id,
+          quantity: 1,
+          notes: requestNotes || `Requesting product: ${product.name}`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRequestSuccess((prev) => ({ ...prev, [product.id]: true }));
+        setShowRequestModal(false);
+        setSelectedProductForRequest(null);
+        setRequestNotes("");
+        setSuccessMessage(
+          `✅ Request for "${product.name}" submitted successfully!`,
+        );
+        setTimeout(() => setSuccessMessage(null), 5000);
       } else {
-        delete newCart[productId];
+        throw new Error(data.error || "Failed to submit request");
       }
-      return newCart;
-    });
+    } catch (err: any) {
+      console.error("Error requesting product:", err);
+      setErrorMessage(
+        err.message || "Failed to submit request. Please try again.",
+      );
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
+      setRequesting((prev) => ({ ...prev, [product.id]: false }));
+    }
   };
 
-  const getCartTotal = () => {
-    let total = 0;
-    let items = 0;
-    products.forEach((product) => {
-      const quantity = cart[product.id] || 0;
-      if (quantity > 0) {
-        const price = getNumericPrice(product.price);
-        total += price * quantity;
-        items += quantity;
-      }
-    });
-    return { total, items };
+  // Open request modal
+  const openRequestModal = (product: Product) => {
+    setSelectedProductForRequest(product);
+    setRequestNotes("");
+    setShowRequestModal(true);
   };
-
-  const { total, items } = getCartTotal();
 
   // Get image URL
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return null;
     return `${API_BASE_URL}${imagePath}`;
+  };
+
+  // Clear messages
+  const clearMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
   };
 
   // Loading skeleton
@@ -250,7 +300,7 @@ const ProductDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <div className="w-full px-3 sm:px-4 py-4 sm:py-6">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -272,7 +322,7 @@ const ProductDashboard = () => {
           </div>
         </div>
 
-        {/* Search and Cart */}
+        {/* Search */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -293,23 +343,42 @@ const ProductDashboard = () => {
             >
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button
-              onClick={() => setShowCart(!showCart)}
-              variant="outline"
-              className="relative border-gray-200 hover:bg-gray-100"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              <span className="ml-2">Cart</span>
-              {items > 0 && (
-                <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {items}
-                </span>
-              )}
-            </Button>
           </div>
         </div>
 
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+              <span className="font-medium">{successMessage}</span>
+            </div>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-green-600 hover:text-green-800 flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Error Message */}
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <span className="font-medium">{errorMessage}</span>
+            </div>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="text-red-600 hover:text-red-800 flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* API Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -415,7 +484,7 @@ const ProductDashboard = () => {
               variant={selectedCategory === "all" ? "default" : "outline"}
               className={`rounded-full text-sm font-medium transition-all ${
                 selectedCategory === "all"
-                  ? " text-white shadow-md"
+                  ? "bg-primary text-white shadow-md"
                   : "bg-white hover:bg-gray-100"
               }`}
             >
@@ -428,7 +497,7 @@ const ProductDashboard = () => {
                 variant={selectedCategory === category ? "default" : "outline"}
                 className={`rounded-full text-sm font-medium transition-all ${
                   selectedCategory === category
-                    ? "text-white shadow-md"
+                    ? "bg-primary text-white shadow-md"
                     : "bg-white hover:bg-gray-100"
                 }`}
               >
@@ -458,12 +527,18 @@ const ProductDashboard = () => {
             {filteredProducts.map((product) => {
               const price = getNumericPrice(product.price);
               const retailPrice = getNumericPrice(product.retail_price);
-              const discount = getNumericPrice(product.discount);
+              const isOutOfStock = product.stock === 0;
+              const isRequesting = requesting[product.id] || false;
+              const isRequested = requestSuccess[product.id] || false;
 
               return (
                 <Card
                   key={product.id}
-                  className="group bg-white hover:shadow-lg transition-all duration-200 overflow-hidden border border-gray-200 hover:border-orange-300"
+                  className={`group bg-white hover:shadow-lg transition-all duration-200 overflow-hidden border ${
+                    isOutOfStock
+                      ? "border-red-200 hover:border-red-300"
+                      : "border-gray-200 hover:border-orange-300"
+                  }`}
                 >
                   <CardContent className="p-0">
                     {/* Product Image */}
@@ -472,7 +547,9 @@ const ProductDashboard = () => {
                         <img
                           src={getImageUrl(product.images[0]) || ""}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                            isOutOfStock ? "opacity-60" : ""
+                          }`}
                           onError={(e) =>
                             ((e.target as HTMLImageElement).style.display =
                               "none")
@@ -480,11 +557,13 @@ const ProductDashboard = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-16 h-16 text-gray-300" />
+                          <Package
+                            className={`w-16 h-16 ${isOutOfStock ? "text-gray-400" : "text-gray-300"}`}
+                          />
                         </div>
                       )}
 
-                      {product.stock <= 5 && product.stock > 0 && (
+                      {!isOutOfStock && product.stock <= 5 && (
                         <div className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs font-medium px-2 py-1 rounded">
                           Only {product.stock} left
                         </div>
@@ -494,7 +573,9 @@ const ProductDashboard = () => {
                     {/* Product Info */}
                     <div className="p-4">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-semibold text-gray-900 line-clamp-1">
+                        <h3
+                          className={`font-semibold ${isOutOfStock ? "text-gray-500" : "text-gray-900"} line-clamp-1`}
+                        >
                           {product.name}
                         </h3>
                         <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded flex-shrink-0 ml-2">
@@ -517,7 +598,9 @@ const ProductDashboard = () => {
 
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                         <div>
-                          <div className="text-lg font-bold text-gray-900">
+                          <div
+                            className={`text-lg font-bold ${isOutOfStock ? "text-gray-400" : "text-gray-900"}`}
+                          >
                             Rs. {price.toFixed(2)}
                           </div>
                           {retailPrice > price && (
@@ -526,15 +609,51 @@ const ProductDashboard = () => {
                             </div>
                           )}
                         </div>
-                        <Button
-                          onClick={() =>
-                            navigate(`/dashboard/product/${product.id}`)
-                          }
-                          className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all text-sm hover:shadow-md active:scale-95"
-                        >
-                          <ShoppingCart className="w-4 h-4" />
-                          Buy
-                        </Button>
+
+                        {/* Out of Stock Label and Request Button */}
+                        {isOutOfStock ? (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
+                              Out of Stock
+                            </span>
+                            <Button
+                              onClick={() => openRequestModal(product)}
+                              disabled={isRequesting || isRequested}
+                              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                                isRequested
+                                  ? "bg-green-500 hover:bg-green-600 text-white"
+                                  : "bg-blue-500 hover:bg-blue-600 text-white"
+                              } hover:shadow-md active:scale-95`}
+                            >
+                              {isRequesting ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                  Requesting...
+                                </>
+                              ) : isRequested ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4" />
+                                  Requested
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="w-4 h-4" />
+                                  Request
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={() =>
+                              navigate(`/dashboard/product/${product.id}`)
+                            }
+                            className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all text-sm hover:shadow-md active:scale-95"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            Buy
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -545,122 +664,100 @@ const ProductDashboard = () => {
         )}
       </div>
 
-      {/* Cart Sidebar */}
-      {showCart && (
-        <div className="fixed inset-0 z-50 flex items-start justify-end">
+      {/* Request Product Modal */}
+      {showRequestModal && selectedProductForRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowCart(false)}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setShowRequestModal(false);
+              setSelectedProductForRequest(null);
+              setRequestNotes("");
+            }}
           />
-          <Card className="relative w-full max-w-md h-full shadow-2xl overflow-y-auto rounded-none animate-in slide-in-from-right">
+          <Card className="relative w-full max-w-md bg-white shadow-2xl">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold">Your Cart</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Request Product</h2>
                 <Button
                   variant="ghost"
-                  onClick={() => setShowCart(false)}
+                  onClick={() => {
+                    setShowRequestModal(false);
+                    setSelectedProductForRequest(null);
+                    setRequestNotes("");
+                  }}
                   className="p-2 hover:bg-gray-100 rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
-              {items === 0 ? (
-                <div className="text-center py-12">
-                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Your cart is empty</p>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    {products.map((product) => {
-                      const quantity = cart[product.id] || 0;
-                      if (quantity === 0) return null;
-                      const price = getNumericPrice(product.price);
-                      return (
-                        <div
-                          key={product.id}
-                          className="flex items-center gap-4 p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            {product.images && product.images[0] ? (
-                              <img
-                                src={getImageUrl(product.images[0]) || ""}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) =>
-                                  ((
-                                    e.target as HTMLImageElement
-                                  ).style.display = "none")
-                                }
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-6 h-6 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">
-                              {product.name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Rs. {price.toFixed(2)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeFromCart(product.id)}
-                              className="h-8 w-8 hover:bg-gray-100"
-                            >
-                              <Minus className="w-4 h-4" />
-                            </Button>
-                            <span className="w-8 text-center font-medium">
-                              {quantity}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => addToCart(product.id)}
-                              className="h-8 w-8 hover:bg-gray-100"
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="border-t border-gray-200 mt-6 pt-6">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span>Rs. {total.toFixed(2)}</span>
-                    </div>
-                    <Button className="w-full mt-4  text-white py-3 rounded-lg font-medium transition-colors">
-                      Proceed to Checkout
-                    </Button>
-                  </div>
-                </>
-              )}
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Product:</span>{" "}
+                  {selectedProductForRequest.name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Code:</span>{" "}
+                  {selectedProductForRequest.product_id}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Price:</span> Rs.{" "}
+                  {getNumericPrice(selectedProductForRequest.price).toFixed(2)}
+                </p>
+                <p className="text-sm text-red-600 mt-2">
+                  ⚠️ This product is currently out of stock. You can request it
+                  and we'll notify you when it's available.
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <Label className="text-sm font-medium text-gray-700">
+                  Additional Notes (Optional)
+                </Label>
+                <Input
+                  placeholder="Any special requirements or quantity needed..."
+                  value={requestNotes}
+                  onChange={(e) => setRequestNotes(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowRequestModal(false);
+                    setSelectedProductForRequest(null);
+                    setRequestNotes("");
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    handleRequestProduct(selectedProductForRequest)
+                  }
+                  disabled={requesting[selectedProductForRequest.id]}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  {requesting[selectedProductForRequest.id] ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Submit Request
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* Floating Cart Button (Mobile) */}
-      {items > 0 && !showCart && (
-        <Button
-          onClick={() => setShowCart(true)}
-          className="fixed bottom-6 right-6 md:hidden  text-white p-4 rounded-full shadow-lg transition-colors h-auto w-auto"
-        >
-          <div className="relative">
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              {items}
-            </span>
-          </div>
-        </Button>
       )}
     </div>
   );
