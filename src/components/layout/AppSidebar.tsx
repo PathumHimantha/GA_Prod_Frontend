@@ -92,6 +92,12 @@ const menuGroups: MenuGroup[] = [
         icon: ShoppingBag,
         roles: ["admin"],
       },
+      {
+        label: "Requested Products",
+        path: "/dashboard/requested-products",
+        icon: ShoppingBag,
+        roles: ["admin"],
+      },
     ],
   },
   {

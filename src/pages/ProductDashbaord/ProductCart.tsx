@@ -37,6 +37,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import ApprovalModal from "./ApprovalModal";
+
 type CartItem = {
   id: number;
   product_id: string;
@@ -52,7 +53,7 @@ type CartItem = {
   category: string;
   images: string[];
   product_price: string;
-  product_weight?: string | number; // Add this field
+  product_weight?: string | number;
 };
 
 type CustomerDetails = {
@@ -115,6 +116,11 @@ const ProductCart = () => {
     totalAmount: 0,
   });
 
+  // ✅ Success/Error Message States
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successDetails, setSuccessDetails] = useState<any>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   // Approval Modal State
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<CustomerGroup | null>(
@@ -130,6 +136,13 @@ const ProductCart = () => {
   // Get user ID from auth context
   const userId = user?.id || localStorage.getItem("userId") || "89";
 
+  // Clear messages function
+  const clearMessages = () => {
+    setSuccessMessage(null);
+    setSuccessDetails(null);
+    setErrorMessage(null);
+  };
+
   useEffect(() => {
     loadCartItems();
   }, [userId]);
@@ -137,6 +150,7 @@ const ProductCart = () => {
   const loadCartItems = async () => {
     setLoading(true);
     setError(null);
+    clearMessages();
     try {
       const response = await fetch(
         `${API_BASE_URL}/cart/user/${encodeURIComponent(userId)}`,
@@ -174,6 +188,7 @@ const ProductCart = () => {
   const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     setUpdating(itemId);
+    clearMessages();
     try {
       const response = await fetch(`${API_BASE_URL}/cart/update/${itemId}`, {
         method: "PUT",
@@ -186,10 +201,13 @@ const ProductCart = () => {
         const data = await response.json();
         throw new Error(data.error || "Failed to update quantity");
       }
+      setSuccessMessage("Quantity updated successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
       await loadCartItems();
     } catch (err: any) {
       console.error("Error updating quantity:", err);
-      setError(err.message || "Failed to update quantity");
+      setErrorMessage(err.message || "Failed to update quantity");
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setUpdating(null);
     }
@@ -199,6 +217,7 @@ const ProductCart = () => {
     if (!confirm("Are you sure you want to remove this item from cart?"))
       return;
     setRemoving(itemId);
+    clearMessages();
     try {
       const response = await fetch(`${API_BASE_URL}/cart/remove/${itemId}`, {
         method: "DELETE",
@@ -207,10 +226,13 @@ const ProductCart = () => {
         const data = await response.json();
         throw new Error(data.error || "Failed to remove item");
       }
+      setSuccessMessage("Item removed from cart successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
       await loadCartItems();
     } catch (err: any) {
       console.error("Error removing item:", err);
-      setError(err.message || "Failed to remove item");
+      setErrorMessage(err.message || "Failed to remove item");
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setRemoving(null);
     }
@@ -235,69 +257,10 @@ const ProductCart = () => {
     setCustomerPhone(customer?.phone1 || "");
     setApprovalError(null);
     setIsEditing(false);
+    clearMessages();
     setShowApprovalModal(true);
   };
 
-  const handleApprove = async () => {
-    if (!selectedGroup) return;
-
-    setApproving(true);
-    setApprovalError(null);
-
-    try {
-      const firstItem = selectedGroup.items[0];
-      const productIds = selectedGroup.items.map((item) => item.id);
-      const totalAmount = selectedGroup.total_amount;
-      const customer = selectedGroup.customer_details?.customer;
-
-      // Get product weight from the item (it's available in the API response)
-      const productWeight = parseFloat((firstItem as any)?.product_weight || 0);
-
-      const response = await fetch(`${API_BASE_URL}/loans/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customer_nic: selectedGroup.customer_nic,
-          customer_name:
-            customer?.name || customer?.cname || selectedGroup.customer_nic,
-          customer_address: customerAddress,
-          customer_phone: customerPhone,
-          product_ids: productIds,
-          product_id: firstItem?.product_id,
-          total_amount: totalAmount,
-          price: parseFloat(firstItem?.price || 0),
-          quantity: firstItem?.quantity || 1,
-          center: customer?.center || "",
-          ccode: customer?.ccode || "",
-          bname: customer?.bname || "",
-          customer_code: customer?.customer_code || "",
-          period_weeks: periodWeeks,
-          created_by: userId,
-          product_weight: productWeight, // Add product weight
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to submit product loan");
-      }
-
-      setShowApprovalModal(false);
-      setSelectedGroup(null);
-      alert(
-        `✅ Product loan approved successfully!\n\nLoan Code: ${data.data.loanCode}\nOrder Code: ${data.data.orderCode}\nTotal: Rs. ${data.data.loan.total_amount.toFixed(2)}\nCourier Charge: Rs. ${data.data.courierCharge.toFixed(2)}\nTotal with Courier: Rs. ${data.data.totalWithCourier.toFixed(2)}\nWeek Payment: Rs. ${data.data.weekPayment.toFixed(2)}`,
-      );
-      await loadCartItems();
-    } catch (err: any) {
-      console.error("Error approving loan:", err);
-      setApprovalError(err.message || "Failed to approve loan");
-    } finally {
-      setApproving(false);
-    }
-  };
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return null;
     return `${API_BASE_URL}${imagePath}`;
@@ -318,7 +281,7 @@ const ProductCart = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-        <div className=" mx-auto">
+        <div className="mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-64 mb-6"></div>
@@ -350,7 +313,7 @@ const ProductCart = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="w-full px-3 sm:px-4 py-4 sm:py-6">
-        <div className=" mx-auto">
+        <div className="mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -384,7 +347,69 @@ const ProductCart = () => {
             </div>
           </div>
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl flex items-center justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-medium">{successMessage}</span>
+                  {successDetails && (
+                    <div className="text-sm text-green-700 mt-2 space-y-1">
+                      <p>
+                        <span className="font-medium">Loan Code:</span>{" "}
+                        {successDetails.loanCode}
+                      </p>
+                      <p>
+                        <span className="font-medium">Order Code:</span>{" "}
+                        {successDetails.orderCode}
+                      </p>
+                      <p>
+                        <span className="font-medium">Total:</span> Rs.{" "}
+                        {successDetails.total}
+                      </p>
+                      <p>
+                        <span className="font-medium">Courier Charge:</span> Rs.{" "}
+                        {successDetails.courierCharge}
+                      </p>
+                      <p>
+                        <span className="font-medium">Total with Courier:</span>{" "}
+                        Rs. {successDetails.totalWithCourier}
+                      </p>
+                      <p>
+                        <span className="font-medium">Week Payment:</span> Rs.{" "}
+                        {successDetails.weekPayment}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={clearMessages}
+                className="text-green-600 hover:text-green-800 flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                <span className="font-medium">{errorMessage}</span>
+              </div>
+              <button
+                onClick={clearMessages}
+                className="text-red-600 hover:text-red-800 flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* API Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -556,7 +581,7 @@ const ProductCart = () => {
                                       e.stopPropagation();
                                       openApprovalModal(group);
                                     }}
-                                    className=" text-white"
+                                    className="text-white"
                                     size="sm"
                                   >
                                     <CheckCircle className="w-4 h-4 mr-1" />
@@ -700,9 +725,9 @@ const ProductCart = () => {
         }) => {
           setApproving(true);
           setApprovalError(null);
+          clearMessages();
 
           try {
-            // Create FormData for file upload
             const formData = new FormData();
             formData.append("customer_nic", selectedGroup.customer_nic);
             formData.append(
@@ -725,14 +750,13 @@ const ProductCart = () => {
             formData.append("product_weight", String(productWeight));
             formData.append("courier_charge", String(courierCharge));
 
-            // Append the file
             if (purchaseAgreement) {
               formData.append("purchase_agreement", purchaseAgreement);
             }
 
             const response = await fetch(`${API_BASE_URL}/loans/submit`, {
               method: "POST",
-              body: formData, // Use FormData for file upload
+              body: formData,
             });
 
             const data = await response.json();
@@ -743,9 +767,24 @@ const ProductCart = () => {
 
             setShowApprovalModal(false);
             setSelectedGroup(null);
-            alert(
-              `✅ Product loan approved successfully!\n\nLoan Code: ${data.data.loanCode}\nOrder Code: ${data.data.orderCode}\nTotal: Rs. ${data.data.loan.total_amount.toFixed(2)}\nCourier Charge: Rs. ${data.data.courierCharge.toFixed(2)}\nTotal with Courier: Rs. ${data.data.totalWithCourier.toFixed(2)}\nWeek Payment: Rs. ${data.data.weekPayment.toFixed(2)}`,
-            );
+
+            // ✅ Show success message instead of alert
+            setSuccessMessage(`✅ Product loan approved successfully!`);
+            setSuccessDetails({
+              loanCode: data.data.loanCode,
+              orderCode: data.data.orderCode,
+              total: data.data.loan.total_amount.toFixed(2),
+              courierCharge: data.data.courierCharge.toFixed(2),
+              totalWithCourier: data.data.totalWithCourier.toFixed(2),
+              weekPayment: data.data.weekPayment.toFixed(2),
+            });
+
+            // Auto-dismiss after 10 seconds
+            setTimeout(() => {
+              setSuccessMessage(null);
+              setSuccessDetails(null);
+            }, 10000);
+
             await loadCartItems();
           } catch (err: any) {
             console.error("Error approving loan:", err);
