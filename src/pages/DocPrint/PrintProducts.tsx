@@ -106,6 +106,7 @@ const PrintProducts = () => {
   }, []);
 
   // Filter products by category and search
+  // Filter products by category and search
   useEffect(() => {
     let filtered = products;
 
@@ -123,8 +124,19 @@ const PrintProducts = () => {
       );
     }
 
-    // Only show active products with stock
-    filtered = filtered.filter((p) => p.status === "active" && p.stock > 0);
+    // ✅ Show ALL active products (including out of stock)
+    filtered = filtered.filter((p) => p.status === "active");
+
+    // ✅ Sort: In-stock first, out-of-stock last (newest first within each group)
+    filtered = [...filtered].sort((a, b) => {
+      const aOut = a.stock === 0 ? 1 : 0;
+      const bOut = b.stock === 0 ? 1 : 0;
+      if (aOut !== bOut) return aOut - bOut;
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+
     setFilteredProducts(filtered);
   }, [products, selectedCategory, searchTerm]);
 
