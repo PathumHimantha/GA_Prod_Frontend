@@ -288,7 +288,7 @@ const SingleProduct = () => {
             checkingFloat={checkingFloat}
             canSubmitLoan={canSubmitLoan}
             floatReason={floatReason}
-            title="Payments Disabled"
+            title="Product Loans Disabled"
             description="Float record not found for today. Please contact your branch manager."
           />
 
