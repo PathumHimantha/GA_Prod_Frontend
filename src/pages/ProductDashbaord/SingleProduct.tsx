@@ -23,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+// ✅ Float check imports
+import { useFloatCheck } from "@/lib/useFloatCheck";
+import { FloatWarningBanner } from "@/components/FloatWarningBanner";
 
 type Product = {
   id: number;
@@ -65,6 +68,16 @@ const SingleProduct = () => {
     quantity: number;
     total: number;
   } | null>(null);
+
+  // ✅ Float check — same pattern as other pages
+  const dateStr = new Date().toISOString().split("T")[0];
+  const { canSubmitLoan, floatReason, checkingFloat } = useFloatCheck(
+    user?.bname || "",
+    user?.name || "",
+    user?.id?.toString() || "",
+    dateStr,
+    !!user, // Only enable if user exists
+  );
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -115,6 +128,10 @@ const SingleProduct = () => {
   };
 
   const handleAddToCart = () => {
+    // ✅ Block if float not available
+    if (!canSubmitLoan) {
+      return;
+    }
     setShowAddToCartModal(true);
     setCustomerNic("");
     setNicError(null);
@@ -265,6 +282,15 @@ const SingleProduct = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
+
+          {/* ✅ Float Warning Banner */}
+          <FloatWarningBanner
+            checkingFloat={checkingFloat}
+            canSubmitLoan={canSubmitLoan}
+            floatReason={floatReason}
+            title="Payments Disabled"
+            description="Float record not found for today. Please contact your branch manager."
+          />
 
           {/* Success Message */}
           {successMessage && (
@@ -473,12 +499,25 @@ const SingleProduct = () => {
                     </span>
                   </div>
 
+                  {/* ✅ Add to Cart button — disabled when float check fails */}
                   <Button
                     onClick={handleAddToCart}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg font-semibold"
+                    disabled={!canSubmitLoan || checkingFloat}
+                    title={
+                      !canSubmitLoan
+                        ? floatReason || "Float record not found for today"
+                        : checkingFloat
+                          ? "Checking float status..."
+                          : ""
+                    }
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart - Rs. {(price * quantity).toFixed(2)}
+                    {checkingFloat
+                      ? "Checking..."
+                      : !canSubmitLoan
+                        ? "Payments Disabled"
+                        : `Add to Cart - Rs. ${(price * quantity).toFixed(2)}`}
                   </Button>
                 </div>
               )}
