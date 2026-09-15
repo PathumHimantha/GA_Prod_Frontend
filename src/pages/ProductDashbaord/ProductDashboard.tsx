@@ -174,6 +174,19 @@ const ProductDashboard = () => {
     // Show all active products (including out of stock)
     filtered = filtered.filter((p) => p.status === "active");
 
+    // ✅ Sort: In-stock products first, then out-of-stock.
+    // Within each group, keep newest first (already ordered by API).
+    filtered = [...filtered].sort((a, b) => {
+      const aOut = a.stock === 0 ? 1 : 0;
+      const bOut = b.stock === 0 ? 1 : 0;
+      if (aOut !== bOut) return aOut - bOut; // in-stock (0) before out-of-stock (1)
+
+      // Optional: within each group, newest created first
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+
     return filtered;
   }, [products, selectedCategory, searchTerm]);
 
