@@ -98,8 +98,7 @@ const SingleProduct = () => {
   }, [id]);
 
   const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return null;
-    return `${API_BASE_URL}${imagePath}`;
+    return imagePath || null;
   };
 
   const getNumericPrice = (price: number) => {

@@ -803,7 +803,7 @@ const ManageOrders = () => {
                           variant="outline"
                           onClick={() => {
                             window.open(
-                              `${API_BASE_URL}${selectedOrder.purchase_agreement}`,
+                              selectedOrder.purchase_agreement, // ✅ Direct S3 URL
                               "_blank",
                             );
                           }}
@@ -817,7 +817,7 @@ const ManageOrders = () => {
                           variant="outline"
                           onClick={() => {
                             const link = document.createElement("a");
-                            link.href = `${API_BASE_URL}${selectedOrder.purchase_agreement}`;
+                            link.href = selectedOrder.purchase_agreement; // ✅ Direct S3 URL
                             link.download =
                               selectedOrder.purchase_agreement
                                 .split("/")
@@ -839,7 +839,7 @@ const ManageOrders = () => {
                     ) && (
                       <div className="mt-3 p-2 bg-white rounded-lg border border-gray-200">
                         <img
-                          src={`${API_BASE_URL}${selectedOrder.purchase_agreement}`}
+                          src={selectedOrder.purchase_agreement} // ✅ Direct S3 URL
                           alt="Purchase Agreement"
                           className="max-h-64 w-auto mx-auto rounded-lg object-contain"
                           onError={(e) => {
