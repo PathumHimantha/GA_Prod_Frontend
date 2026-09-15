@@ -145,7 +145,7 @@ const ManageProducts = () => {
       render: (_v, row) => {
         const imageUrl =
           row.images && row.images.length > 0
-            ? `${API_BASE_URL}${row.images[0]}`
+            ? row.images[0] // ✅ Use the S3 URL directly (no API_BASE_URL)
             : null;
         return (
           <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">

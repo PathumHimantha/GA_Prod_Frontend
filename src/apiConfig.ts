@@ -1,6 +1,6 @@
 // ── Base URL ──────────────────────────────────────────────────
-export const API_BASE_URL = "https://purchase.goldenasia.lk/api";
-// export const API_BASE_URL = "http://localhost:5000/api";
+// export const API_BASE_URL = "https://purchase.goldenasia.lk/api";
+export const API_BASE_URL = "http://localhost:5000/api";
 // export const API_BASE_URL = "http://57.128.195.112/api";
 export const APP_API_BASE_URL = "https://application.goldenasia.lk/api";
 //
