@@ -127,11 +127,20 @@ const PrintProducts = () => {
     // ✅ Show ALL active products (including out of stock)
     filtered = filtered.filter((p) => p.status === "active");
 
-    // ✅ Sort: In-stock first, out-of-stock last (newest first within each group)
+    // ✅ Sort: Category (A→Z) → In-stock first → Newest first
     filtered = [...filtered].sort((a, b) => {
+      // 1. Category alphabetically
+      const catCompare = (a.category || "Uncategorized").localeCompare(
+        b.category || "Uncategorized",
+      );
+      if (catCompare !== 0) return catCompare;
+
+      // 2. Within same category: in-stock first
       const aOut = a.stock === 0 ? 1 : 0;
       const bOut = b.stock === 0 ? 1 : 0;
       if (aOut !== bOut) return aOut - bOut;
+
+      // 3. Within same stock status: newest first
       return (
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -227,12 +236,36 @@ const PrintProducts = () => {
       .filter((p) => p.length > 0);
   };
 
-  // Group products for A4 layout (4 per page - 2x2)
-  const getProductPages = () => {
+  const getProductPages = (): Product[][] => {
     const pages: Product[][] = [];
-    for (let i = 0; i < filteredProducts.length; i += PRINT_PRODUCTS_PER_PAGE) {
-      pages.push(filteredProducts.slice(i, i + PRINT_PRODUCTS_PER_PAGE));
+
+    // 1. Group products by category (preserving the sorted order)
+    const grouped = new Map<string, Product[]>();
+    for (const p of filteredProducts) {
+      const cat = p.category || "Uncategorized";
+      if (!grouped.has(cat)) grouped.set(cat, []);
+      grouped.get(cat)!.push(p);
     }
+
+    // 2. For each category, chunk into pages of 4
+    for (const [, items] of grouped) {
+      for (let i = 0; i < items.length; i += PRINT_PRODUCTS_PER_PAGE) {
+        const chunk = items.slice(i, i + PRINT_PRODUCTS_PER_PAGE);
+
+        // ✅ Pad the last page of this category with empty slots so the next
+        //    category starts on a fresh page (avoids mixing categories).
+        //    Set `padWithEmpty = false` if you'd rather let categories share a page.
+        const padWithEmpty = true;
+        if (padWithEmpty && chunk.length < PRINT_PRODUCTS_PER_PAGE) {
+          while (chunk.length < PRINT_PRODUCTS_PER_PAGE) {
+            chunk.push(null as unknown as Product);
+          }
+        }
+
+        pages.push(chunk);
+      }
+    }
+
     return pages;
   };
 
