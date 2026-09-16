@@ -24,6 +24,8 @@ import Repayment from "./pages/Reports/Repayment";
 import PrintLoanAgreementDoc from "./pages/DocPrint/PrintLoanAgreementDoc";
 import PrintProducts from "./pages/DocPrint/PrintProducts";
 import RequestedProducts from "./pages/products/RequestedProducts";
+import ProductPurchases from "./pages/Reports/DailyProductPurchases";
+import CenterPayments from "./pages/Reports/CenterPayments";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -49,6 +51,8 @@ const App = () => (
               <Route path="product-repayments" element={<Repayment />} />
               <Route path="print-docs" element={<PrintLoanAgreementDoc />} />
               <Route path="print-products" element={<PrintProducts />} />
+              <Route path="daily-report" element={<ProductPurchases />} />
+              <Route path="center-payments" element={<CenterPayments />} />
               <Route
                 path="requested-products"
                 element={<RequestedProducts />}
