@@ -114,8 +114,8 @@ const ProductCart = () => {
     totalCustomers: 0,
     totalItems: 0,
     totalAmount: 0,
+    requestedItems: 0,
   });
-
   // ✅ Success/Error Message States
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<any>(null);
@@ -167,6 +167,7 @@ const ProductCart = () => {
             totalCustomers: 0,
             totalItems: 0,
             totalAmount: 0,
+            requestedItems: 0,
           },
         );
         if (data.data.groups && data.data.groups.length > 0) {
@@ -214,6 +215,17 @@ const ProductCart = () => {
   };
 
   const removeItem = async (itemId: number) => {
+    // ✅ Find the item and check status
+    const item = groups.flatMap((g) => g.items).find((i) => i.id === itemId);
+
+    if (item?.status === "requested") {
+      setErrorMessage(
+        "Cannot remove this item — it is pending fulfillment. Please wait for the request to be fulfilled.",
+      );
+      setTimeout(() => setErrorMessage(null), 5000);
+      return;
+    }
+
     if (!confirm("Are you sure you want to remove this item from cart?"))
       return;
     setRemoving(itemId);
@@ -275,7 +287,25 @@ const ProductCart = () => {
       minute: "2-digit",
     });
   };
+  // ✅ Helper: count of requested items in a group
+  const getGroupRequestedCount = (group: CustomerGroup) =>
+    group.items.filter((item) => item.status === "requested").length;
 
+  // ✅ Helper: is any item in this group still pending fulfillment?
+  const isGroupLocked = (group: CustomerGroup) =>
+    getGroupRequestedCount(group) > 0;
+
+  // ✅ Helper: recompute summary including requested count (client fallback)
+  const computedRequestedCount = groups.reduce(
+    (sum, g) => sum + getGroupRequestedCount(g),
+    0,
+  );
+
+  // Use backend value if present, otherwise fall back to client count
+  const requestedItemsCount =
+    summary.requestedItems > 0
+      ? summary.requestedItems
+      : computedRequestedCount;
   // Loading skeleton
   if (loading) {
     return (
@@ -427,7 +457,7 @@ const ProductCart = () => {
 
           {/* Summary Cards */}
           {!loading && groups.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <Card className="bg-white border-l-4 border-l-blue-500">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -471,6 +501,26 @@ const ProductCart = () => {
                     </div>
                     <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
                       <DollarSign className="w-5 h-5 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white border-l-4 border-l-amber-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-500">Requested Items</p>
+                      <p className="text-2xl font-bold text-amber-600">
+                        {requestedItemsCount}
+                      </p>
+                      {requestedItemsCount > 0 && (
+                        <p className="text-xs text-amber-600 mt-0.5">
+                          Awaiting fulfillment
+                        </p>
+                      )}
+                    </div>
+                    <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-amber-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -573,18 +623,39 @@ const ProductCart = () => {
                                   <p className="text-lg font-bold text-orange-600">
                                     Rs. {group.total_amount.toFixed(2)}
                                   </p>
+                                  {/* ✅ Pending fulfillment warning */}
+                                  {isGroupLocked(group) && (
+                                    <p className="text-xs font-medium text-amber-600 mt-0.5 flex items-center justify-end gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {getGroupRequestedCount(group)} pending
+                                    </p>
+                                  )}
                                 </div>
                                 <div className="flex items-center gap-2">
+                                  {/* ✅ Approve button — disabled if group is locked */}
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      if (isGroupLocked(group)) return;
                                       openApprovalModal(group);
                                     }}
-                                    className="text-white"
+                                    disabled={isGroupLocked(group)}
+                                    title={
+                                      isGroupLocked(group)
+                                        ? "Some items are still pending fulfillment. Wait for the request to be fulfilled."
+                                        : ""
+                                    }
+                                    className={`text-white ${
+                                      isGroupLocked(group)
+                                        ? "bg-gray-400 cursor-not-allowed opacity-60"
+                                        : ""
+                                    }`}
                                     size="sm"
                                   >
                                     <CheckCircle className="w-4 h-4 mr-1" />
-                                    Approve
+                                    {isGroupLocked(group)
+                                      ? "Pending Fulfillment"
+                                      : "Approve"}
                                   </Button>
 
                                   {isExpanded ? (
@@ -666,16 +737,43 @@ const ProductCart = () => {
                                     </div>
 
                                     <div className="flex flex-wrap items-center justify-between gap-3 mt-2 pt-2 border-t border-gray-200">
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-xs text-gray-400">
                                           Added: {formatDate(item.created_at)}
                                         </span>
+
+                                        {/* ✅ Status badge */}
+                                        {item.status === "requested" ? (
+                                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] font-medium">
+                                            <Clock className="w-3 h-3 mr-1" />
+                                            Pending Fulfillment
+                                          </Badge>
+                                        ) : (
+                                          <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] font-medium">
+                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                            Ready
+                                          </Badge>
+                                        )}
+
+                                        {/* ✅ Remove button — disabled for requested items */}
                                         <Button
                                           variant="ghost"
                                           size="sm"
                                           onClick={() => removeItem(item.id)}
-                                          disabled={removing === item.id}
-                                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                          disabled={
+                                            removing === item.id ||
+                                            item.status === "requested"
+                                          }
+                                          title={
+                                            item.status === "requested"
+                                              ? "Cannot remove — waiting for fulfillment"
+                                              : ""
+                                          }
+                                          className={`${
+                                            item.status === "requested"
+                                              ? "text-gray-400 cursor-not-allowed opacity-50"
+                                              : "text-red-500 hover:text-red-700 hover:bg-red-50"
+                                          }`}
                                         >
                                           {removing === item.id ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
