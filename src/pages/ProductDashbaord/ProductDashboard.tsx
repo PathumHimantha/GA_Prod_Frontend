@@ -56,6 +56,8 @@ const ProductDashboard = () => {
   const [selectedProductForRequest, setSelectedProductForRequest] =
     useState<Product | null>(null);
   const [requestNotes, setRequestNotes] = useState("");
+  const [requestCustomerNic, setRequestCustomerNic] = useState("");
+  const [requestNicError, setRequestNicError] = useState<string | null>(null);
   // ✅ Success/Error Message States
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -206,6 +208,21 @@ const ProductDashboard = () => {
       setTimeout(() => setErrorMessage(null), 5000);
       return;
     }
+    // ✅ Validate NIC before submitting
+    const nic = requestCustomerNic.trim().toUpperCase();
+    if (!nic) {
+      setRequestNicError("Please enter Customer NIC");
+      return;
+    }
+
+    const oldNicPattern = /^[0-9]{9}[VX]$/i;
+    const newNicPattern = /^[0-9]{12}$/;
+    if (!oldNicPattern.test(nic) && !newNicPattern.test(nic)) {
+      setRequestNicError("Invalid NIC format. Use 123456789V or 123456789012");
+      return;
+    }
+
+    setRequestNicError(null);
 
     setRequesting((prev) => ({ ...prev, [product.id]: true }));
     setRequestSuccess((prev) => ({ ...prev, [product.id]: false }));
@@ -222,6 +239,7 @@ const ProductDashboard = () => {
           requested_by_id: user.id,
           quantity: 1,
           notes: requestNotes || `Requesting product: ${product.name}`,
+          customer_nic: nic,
         }),
       });
 
@@ -232,11 +250,17 @@ const ProductDashboard = () => {
         setShowRequestModal(false);
         setSelectedProductForRequest(null);
         setRequestNotes("");
+        setRequestCustomerNic(""); // ✅ clear
         setSuccessMessage(
           `✅ Request for "${product.name}" submitted successfully!`,
         );
         setTimeout(() => setSuccessMessage(null), 5000);
       } else {
+        // ✅ Check if it's an eligibility issue (403) — show inside the modal
+        if (response.status === 403) {
+          setRequestNicError(data.error || "Customer is not eligible");
+          return;
+        }
         throw new Error(data.error || "Failed to submit request");
       }
     } catch (err: any) {
@@ -254,9 +278,10 @@ const ProductDashboard = () => {
   const openRequestModal = (product: Product) => {
     setSelectedProductForRequest(product);
     setRequestNotes("");
+    setRequestCustomerNic(""); // ✅ reset
+    setRequestNicError(null); // ✅ reset
     setShowRequestModal(true);
   };
-
   // Get image URL
   const getImageUrl = (imagePath: string) => {
     return imagePath || null;
@@ -725,6 +750,39 @@ const ProductDashboard = () => {
                 </p>
               </div>
 
+              {/* ✅ Customer NIC */}
+              <div className="mb-4">
+                <Label
+                  htmlFor="requestCustomerNic"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Customer NIC <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="requestCustomerNic"
+                  type="text"
+                  placeholder="e.g., 123456789V or 123456789012"
+                  value={requestCustomerNic}
+                  onChange={(e) => {
+                    setRequestCustomerNic(e.target.value);
+                    setRequestNicError(null);
+                  }}
+                  className={`mt-1 ${requestNicError ? "border-red-500" : ""}`}
+                  disabled={requesting[selectedProductForRequest.id]}
+                  autoFocus
+                />
+                {requestNicError && (
+                  <p className="text-sm text-red-500 mt-1 flex items-start gap-1">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    {requestNicError}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  Enter NIC in format: 123456789V (old) or 123456789012 (new)
+                </p>
+              </div>
+
+              {/* Additional Notes */}
               <div className="mb-4">
                 <Label className="text-sm font-medium text-gray-700">
                   Additional Notes (Optional)
@@ -753,8 +811,11 @@ const ProductDashboard = () => {
                   onClick={() =>
                     handleRequestProduct(selectedProductForRequest)
                   }
-                  disabled={requesting[selectedProductForRequest.id]}
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                  disabled={
+                    requesting[selectedProductForRequest.id] ||
+                    !requestCustomerNic.trim()
+                  }
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
                 >
                   {requesting[selectedProductForRequest.id] ? (
                     <>
