@@ -17,6 +17,8 @@ import {
   Plus,
   X,
   CheckCircle,
+  Weight,
+  Banknote,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,8 @@ type Product = {
   images: string[];
   created_at: string;
   updated_at: string;
+  product_weight: string | number;
+  courier_fee: string | number;
 };
 
 const SingleProduct = () => {
@@ -269,6 +273,11 @@ const SingleProduct = () => {
   const isInStock = product.stock > 0;
   const isLowStock = product.stock <= 5 && product.stock > 0;
 
+  const weight = parseFloat(String(product.product_weight ?? 0)) || 0;
+  const courierFee = parseFloat(String(product.courier_fee ?? 0)) || 0;
+  const hasWeight = weight > 0;
+  const hasCourier = courierFee > 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="w-full px-3 sm:px-4 py-4 sm:py-6">
@@ -444,6 +453,38 @@ const SingleProduct = () => {
                 </div>
               </div>
 
+              {/* ✅ Weight + Courier Fee */}
+              {(hasWeight || hasCourier) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {hasWeight && (
+                    <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                      <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Weight className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Product Weight</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {weight.toFixed(2)} kg
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasCourier && (
+                    <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-lg p-3">
+                      <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Banknote className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Courier Fee</p>
+                        <p className="text-sm font-semibold text-gray-900">
+                          Rs. {courierFee.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Features / Delivery Info */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
@@ -516,7 +557,7 @@ const SingleProduct = () => {
                     {checkingFloat
                       ? "Checking..."
                       : !canSubmitLoan
-                        ? "Payments Disabled"
+                        ? "Loans Disabled"
                         : `Add to Cart - Rs. ${(price * quantity).toFixed(2)}`}
                   </Button>
                 </div>
