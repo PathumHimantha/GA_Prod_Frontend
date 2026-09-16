@@ -109,6 +109,16 @@ const menuGroups: MenuGroup[] = [
         path: "/dashboard/product-repayments",
         icon: ClipboardCheck,
       },
+      {
+        label: "Daily Report",
+        path: "/dashboard/daily-report",
+        icon: ClipboardCheck,
+      },
+      {
+        label: "Center Payments",
+        path: "/dashboard/center-payments",
+        icon: ClipboardCheck,
+      },
     ],
   },
 ];

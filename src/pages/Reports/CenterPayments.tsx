@@ -228,9 +228,7 @@ const CenterPayments = () => {
           bname: user?.bname || "",
           dropdown_only: "true",
         });
-        const res = await fetch(
-          `${API_BASE_URL}/api/customers/center_payments?${p}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/report/center_payments?${p}`);
         const data = await res.json();
         if (data.executives) setExecutives(data.executives);
       } catch (_) {
@@ -256,9 +254,7 @@ const CenterPayments = () => {
           selected_branch: selectedBranch,
           dropdown_only: "true",
         });
-        const res = await fetch(
-          `${API_BASE_URL}/api/customers/center_payments?${p}`,
-        );
+        const res = await fetch(`${API_BASE_URL}/report/center_payments?${p}`);
         const data = await res.json();
         if (data.executives) setExecutives(data.executives);
       } catch (_) {}
@@ -281,9 +277,7 @@ const CenterPayments = () => {
       if (selectedBranch !== ALL) p.set("selected_branch", selectedBranch);
       if (selectedExec !== ALL) p.set("selected_name", selectedExec);
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/customers/center_payments?${p}`,
-      );
+      const res = await fetch(`${API_BASE_URL}/report/center_payments?${p}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch");
 

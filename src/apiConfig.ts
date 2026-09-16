@@ -15,7 +15,7 @@ export const API = {
     login: `${APP_API_BASE_URL}/api/auth/login`,
     logout: `${API_BASE_URL}/api/auth/logout`,
     me: `${API_BASE_URL}/api/auth/me`,
-    getUsers: `${API_BASE_URL}/api/auth/get_users`,
+    getUsers: `${APP_API_BASE_URL}/api/auth/get_users`,
     updateUserStatus: (id: number | string) =>
       `${API_BASE_URL}/api/auth/update_user_status/${id}`,
     loginStats: (userId: number | string) =>
@@ -26,7 +26,7 @@ export const API = {
   },
   helper: {
     branches: `${APP_API_BASE_URL}/api/helper/branches`,
-    getUsers: `${API_BASE_URL}/api/helper/get_active_users`,
+    getUsers: `${APP_API_BASE_URL}/api/helper/get_active_users`,
     centers: (bname: string) =>
       `${APP_API_BASE_URL}/api/helper/centers?bname=${encodeURIComponent(bname)}`,
     centersbyday: (bname: string) =>
