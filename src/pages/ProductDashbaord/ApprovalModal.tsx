@@ -520,7 +520,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <div>
                 <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
                   Purchase Agreement – Back Page{" "}
-                  <span className="text-gray-400 font-normal">(optional)</span>
+                  <span className="text-red-500">*</span>
                 </Label>
                 <div className="mt-2">
                   <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 transition-colors bg-white">
