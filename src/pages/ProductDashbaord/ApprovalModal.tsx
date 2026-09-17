@@ -58,7 +58,7 @@ interface ApprovalModalProps {
     customerPhone: string;
     periodWeeks: number;
     courierCharge: number;
-    purchaseAgreement: File | null;
+    purchaseAgreementFront: File | null;
     purchaseAgreementBack: File | null;
     productIds: number[];
     firstItem: CartItem | null;
