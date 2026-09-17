@@ -812,7 +812,7 @@ const ProductCart = () => {
           customerPhone,
           periodWeeks,
           courierCharge,
-          purchaseAgreement,
+          purchaseAgreementFront: purchaseAgreement,
           purchaseAgreementBack,
           productIds,
           firstItem,
@@ -848,8 +848,11 @@ const ProductCart = () => {
             formData.append("product_weight", String(productWeight));
             formData.append("courier_charge", String(courierCharge));
 
-            if (purchaseAgreement) {
-              formData.append("purchase_agreement", purchaseAgreement);
+            if (purchaseAgreementFront) {
+              formData.append(
+                "purchase_agreement_front",
+                purchaseAgreementFront,
+              );
             }
             if (purchaseAgreementBack) {
               formData.append("purchase_agreement_back", purchaseAgreementBack);
