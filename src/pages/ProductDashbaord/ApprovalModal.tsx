@@ -126,7 +126,21 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     const courierCharge = calculateCourierCharge(weight);
     return totalAmount + courierCharge;
   };
-
+  const validateFile = (file: File): string | null => {
+    const validTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+    ];
+    if (!validTypes.includes(file.type)) {
+      return "Please upload a PDF or image file";
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return "File size must be less than 5MB";
+    }
+    return null;
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
@@ -148,7 +162,17 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       setPurchaseAgreement(file);
     }
   };
-
+  const handleBackFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
+    const err = validateFile(file);
+    if (err) {
+      setAgreementBackError(err);
+      return;
+    }
+    setAgreementBackError(null);
+    setPurchaseAgreementBack(file);
+  };
   const handleSubmit = () => {
     if (!purchaseAgreement) {
       setAgreementError("Purchase Agreement is required");
@@ -543,7 +567,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileChange}
+                      onChange={handleBackFileChange}
                       className="hidden"
                       id="purchase-agreement-back"
                       disabled={approving}
