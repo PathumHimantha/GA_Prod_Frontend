@@ -466,10 +466,10 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Upload className="w-6 h-6 text-gray-400 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-600">
-                        {purchaseAgreementFront ? (
+                        {purchaseAgreement ? (
                           <span className="text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle className="w-4 h-4" />
-                            {purchaseAgreementFront.name}
+                            {purchaseAgreement.name}
                           </span>
                         ) : (
                           "Click to upload or drag and drop"
@@ -482,7 +482,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFrontFileChange}
+                      onChange={handleFileChange}
                       className="hidden"
                       id="purchase-agreement-front"
                       disabled={approving}
@@ -498,7 +498,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       className="flex-shrink-0"
                       disabled={approving}
                     >
-                      {purchaseAgreementFront ? "Change" : "Browse"}
+                      {purchaseAgreement ? "Change" : "Browse"}
                     </Button>
                   </div>
                   {agreementError && (
@@ -507,7 +507,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       {agreementError}
                     </p>
                   )}
-                  {purchaseAgreementFront && (
+                  {purchaseAgreement && (
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       Front page uploaded successfully
@@ -543,7 +543,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleBackFileChange}
+                      onChange={handleFileChange}
                       className="hidden"
                       id="purchase-agreement-back"
                       disabled={approving}
