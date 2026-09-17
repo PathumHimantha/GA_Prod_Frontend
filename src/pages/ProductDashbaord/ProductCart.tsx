@@ -851,7 +851,9 @@ const ProductCart = () => {
             if (purchaseAgreement) {
               formData.append("purchase_agreement", purchaseAgreement);
             }
-
+            if (purchaseAgreementBack) {
+              formData.append("purchase_agreement_back", purchaseAgreementBack);
+            }
             const response = await fetch(`${API_BASE_URL}/loans/submit`, {
               method: "POST",
               body: formData,
