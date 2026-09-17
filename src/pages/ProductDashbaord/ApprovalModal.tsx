@@ -59,6 +59,7 @@ interface ApprovalModalProps {
     periodWeeks: number;
     courierCharge: number;
     purchaseAgreement: File | null;
+    purchaseAgreementBack: File | null;
     productIds: number[];
     firstItem: CartItem | null;
     totalAmount: number;
@@ -85,6 +86,11 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [customerPhone, setCustomerPhone] = useState("");
   const [periodWeeks, setPeriodWeeks] = useState(13);
   const [purchaseAgreement, setPurchaseAgreement] = useState<File | null>(null);
+  const [purchaseAgreementBack, setPurchaseAgreementBack] =
+    useState<File | null>(null);
+  const [agreementBackError, setAgreementBackError] = useState<string | null>(
+    null,
+  );
   const [agreementError, setAgreementError] = useState<string | null>(null);
 
   // ✅ Initialize state when modal opens or selectedGroup changes
@@ -95,7 +101,9 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       setCustomerPhone(customer?.phone1 || "");
       setIsEditing(false);
       setPurchaseAgreement(null);
+      setPurchaseAgreementBack(null);
       setAgreementError(null);
+      setAgreementBackError(null);
     }
   }, [isOpen, selectedGroup]);
 
@@ -436,26 +444,32 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
           </div>
 
           {/* Purchase Agreement Upload */}
+          {/* Purchase Agreement Upload */}
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3">
               <FileText className="w-4 h-4 text-orange-500" />
               <h3 className="font-semibold text-gray-900">Documents</h3>
-              <span className="text-xs text-red-500 ml-1">* Required</span>
+              <span className="text-xs text-red-500 ml-1">
+                * Front page required
+              </span>
             </div>
-            <div className="space-y-3">
+
+            <div className="space-y-4">
+              {/* ===== FRONT PAGE ===== */}
               <div>
                 <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  Purchase Agreement <span className="text-red-500">*</span>
+                  Purchase Agreement – Front Page{" "}
+                  <span className="text-red-500">*</span>
                 </Label>
                 <div className="mt-2">
                   <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 transition-colors bg-white">
                     <Upload className="w-6 h-6 text-gray-400 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-600">
-                        {purchaseAgreement ? (
+                        {purchaseAgreementFront ? (
                           <span className="text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle className="w-4 h-4" />
-                            {purchaseAgreement.name}
+                            {purchaseAgreementFront.name}
                           </span>
                         ) : (
                           "Click to upload or drag and drop"
@@ -468,21 +482,23 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileChange}
+                      onChange={handleFrontFileChange}
                       className="hidden"
-                      id="purchase-agreement"
+                      id="purchase-agreement-front"
                       disabled={approving}
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        document.getElementById("purchase-agreement")?.click()
+                        document
+                          .getElementById("purchase-agreement-front")
+                          ?.click()
                       }
                       className="flex-shrink-0"
                       disabled={approving}
                     >
-                      {purchaseAgreement ? "Change" : "Browse"}
+                      {purchaseAgreementFront ? "Change" : "Browse"}
                     </Button>
                   </div>
                   {agreementError && (
@@ -491,17 +507,77 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       {agreementError}
                     </p>
                   )}
-                  {purchaseAgreement && (
+                  {purchaseAgreementFront && (
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
-                      File uploaded successfully
+                      Front page uploaded successfully
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* ===== BACK PAGE ===== */}
+              <div>
+                <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Purchase Agreement – Back Page{" "}
+                  <span className="text-gray-400 font-normal">(optional)</span>
+                </Label>
+                <div className="mt-2">
+                  <div className="flex items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-orange-400 transition-colors bg-white">
+                    <Upload className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600">
+                        {purchaseAgreementBack ? (
+                          <span className="text-green-600 font-medium flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4" />
+                            {purchaseAgreementBack.name}
+                          </span>
+                        ) : (
+                          "Click to upload or drag and drop"
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        PDF, JPG, PNG (Max 5MB)
+                      </p>
+                    </div>
+                    <Input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleBackFileChange}
+                      className="hidden"
+                      id="purchase-agreement-back"
+                      disabled={approving}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        document
+                          .getElementById("purchase-agreement-back")
+                          ?.click()
+                      }
+                      className="flex-shrink-0"
+                      disabled={approving}
+                    >
+                      {purchaseAgreementBack ? "Change" : "Browse"}
+                    </Button>
+                  </div>
+                  {agreementBackError && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {agreementBackError}
+                    </p>
+                  )}
+                  {purchaseAgreementBack && (
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Back page uploaded successfully
                     </p>
                   )}
                 </div>
               </div>
             </div>
           </div>
-
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button

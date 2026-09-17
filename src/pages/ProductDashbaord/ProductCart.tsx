@@ -813,6 +813,7 @@ const ProductCart = () => {
           periodWeeks,
           courierCharge,
           purchaseAgreement,
+          purchaseAgreementBack,
           productIds,
           firstItem,
           totalAmount,
