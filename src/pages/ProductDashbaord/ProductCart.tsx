@@ -812,7 +812,7 @@ const ProductCart = () => {
           customerPhone,
           periodWeeks,
           courierCharge,
-          purchaseAgreementFront: purchaseAgreement,
+          purchaseAgreementFront,
           purchaseAgreementBack,
           productIds,
           firstItem,

@@ -85,7 +85,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [periodWeeks, setPeriodWeeks] = useState(13);
-  const [purchaseAgreement, setPurchaseAgreement] = useState<File | null>(null);
+  const [purchaseAgreementFront, setPurchaseAgreementFront] =
+    useState<File | null>(null);
   const [purchaseAgreementBack, setPurchaseAgreementBack] =
     useState<File | null>(null);
   const [agreementBackError, setAgreementBackError] = useState<string | null>(
@@ -100,7 +101,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       setCustomerAddress(customer?.address || "");
       setCustomerPhone(customer?.phone1 || "");
       setIsEditing(false);
-      setPurchaseAgreement(null);
+      setPurchaseAgreementFront(null);
       setPurchaseAgreementBack(null);
       setAgreementError(null);
       setAgreementBackError(null);
@@ -159,7 +160,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
         return;
       }
       setAgreementError(null);
-      setPurchaseAgreement(file);
+      setPurchaseAgreementFront(file);
     }
   };
   const handleBackFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,7 +175,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     setPurchaseAgreementBack(file);
   };
   const handleSubmit = () => {
-    if (!purchaseAgreement) {
+    if (!purchaseAgreementFront) {
       setAgreementError("Purchase Agreement is required");
       return;
     }
@@ -204,7 +205,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       customerPhone: customerPhone || customer?.phone1 || "",
       periodWeeks,
       courierCharge,
-      purchaseAgreement,
+      purchaseAgreementFront,
+      purchaseAgreementBack,
       productIds,
       firstItem,
       totalAmount,
@@ -490,10 +492,10 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <Upload className="w-6 h-6 text-gray-400 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-600">
-                        {purchaseAgreement ? (
+                        {purchaseAgreementFront ? (
                           <span className="text-green-600 font-medium flex items-center gap-1">
                             <CheckCircle className="w-4 h-4" />
-                            {purchaseAgreement.name}
+                            {purchaseAgreementFront?.name}
                           </span>
                         ) : (
                           "Click to upload or drag and drop"
@@ -522,7 +524,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       className="flex-shrink-0"
                       disabled={approving}
                     >
-                      {purchaseAgreement ? "Change" : "Browse"}
+                      {purchaseAgreementFront ? "Change" : "Browse"}
                     </Button>
                   </div>
                   {agreementError && (
@@ -531,7 +533,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       {agreementError}
                     </p>
                   )}
-                  {purchaseAgreement && (
+                  {purchaseAgreementFront && (
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       Front page uploaded successfully
@@ -615,7 +617,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
             <Button
               onClick={handleSubmit}
               className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={approving || !purchaseAgreement}
+              disabled={approving || !purchaseAgreementFront}
             >
               {approving ? (
                 <>
