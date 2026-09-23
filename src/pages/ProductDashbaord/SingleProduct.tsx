@@ -214,7 +214,11 @@ const SingleProduct = () => {
   const dismissSuccessMessage = () => {
     setSuccessMessage(null);
   };
-
+  // ✅ Document fee: Rs. 1000 if product price >= 15000, else Rs. 500
+  const calculateDocumentFee = (totalAmount: number | string) => {
+    const amount = parseFloat(String(totalAmount)) || 0;
+    return amount >= 15000 ? 1000 : 500;
+  };
   // Loading skeleton
   if (loading) {
     return (
@@ -277,6 +281,12 @@ const SingleProduct = () => {
   const courierFee = parseFloat(String(product.courier_fee ?? 0)) || 0;
   const hasWeight = weight > 0;
   const hasCourier = courierFee > 0;
+  const PERIOD_WEEKS = 13;
+  const weeklyPayment = price / PERIOD_WEEKS;
+
+  // ✅ Document fee based on price threshold
+  const documentFee = calculateDocumentFee(price);
+  const hasDocumentFee = documentFee > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -453,38 +463,66 @@ const SingleProduct = () => {
                 </div>
               </div>
 
-              {/* ✅ Weight + Courier Fee */}
-              {(hasWeight || hasCourier) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {hasWeight && (
-                    <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
-                      <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Weight className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Product Weight</p>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {weight.toFixed(2)} kg
-                        </p>
-                      </div>
+              {/* ✅ Weight + Courier Fee + Weekly Payment + Document Fee */}
+              <div className="grid grid-cols-2 gap-3">
+                {hasWeight && (
+                  <div className="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
+                    <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Weight className="w-4 h-4 text-blue-600" />
                     </div>
-                  )}
+                    <div>
+                      <p className="text-xs text-gray-500">Product Weight</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {weight.toFixed(2)} kg
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-                  {hasCourier && (
-                    <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-lg p-3">
-                      <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Banknote className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Courier Fee</p>
-                        <p className="text-sm font-semibold text-gray-900">
-                          Rs. {courierFee.toFixed(2)}
-                        </p>
-                      </div>
+                {hasCourier && (
+                  <div className="flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-lg p-3">
+                    <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Banknote className="w-4 h-4 text-amber-600" />
                     </div>
-                  )}
+                    <div>
+                      <p className="text-xs text-gray-500">Courier Fee</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        Rs. {courierFee.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ Weekly Payment */}
+                <div className="flex items-center gap-3 bg-green-50 border border-green-100 rounded-lg p-3">
+                  <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">
+                      Weekly Payment ({PERIOD_WEEKS} weeks)
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Rs. {weeklyPayment.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-              )}
+
+                {/* ✅ Document Fee */}
+                {hasDocumentFee && (
+                  <div className="flex items-center gap-3 bg-purple-50 border border-purple-100 rounded-lg p-3">
+                    <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Tag className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Document Fee</p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        Rs. {documentFee.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Features / Delivery Info */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
