@@ -53,6 +53,7 @@ interface Product {
   created_at: string;
   updated_at: string;
   product_weight: string;
+  courier_fee: string;
 }
 
 const emptyForm = {
@@ -80,6 +81,7 @@ const emptyForm = {
   product_name: "",
   product_price: "",
   product_code: "",
+  courier_fee: "",
 };
 
 const PrintLoanAgreementDoc = () => {
@@ -105,7 +107,10 @@ const PrintLoanAgreementDoc = () => {
   const [products, setProducts] = useState<SelectOption[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
+  const calculateDocumentFee = (totalAmount: number | string) => {
+    const amount = parseFloat(String(totalAmount)) || 0;
+    return amount >= 15000 ? 1000 : 500;
+  };
   // Fetch products on mount
   useEffect(() => {
     fetchProducts();
@@ -149,6 +154,10 @@ const PrintLoanAgreementDoc = () => {
         if (product) {
           const price = parseFloat(product.price);
 
+          // ✅ Compute fees
+          const docFee = calculateDocumentFee(price);
+          const courierFee = parseFloat(product.courier_fee || "0") || 0;
+
           setForm((prev) => ({
             ...prev,
             product_id: product.product_id,
@@ -156,6 +165,8 @@ const PrintLoanAgreementDoc = () => {
             product_price: product.price,
             loan_amount: product.price,
             business_type: product.category || "",
+            document_fee: String(docFee), // ✅ new
+            courier_fee: String(courierFee), // ✅ new
           }));
 
           setSelectedProduct(product);
@@ -290,6 +301,13 @@ const PrintLoanAgreementDoc = () => {
         "{{ACC_NO}}": form.account_number || "",
         "{{EX_NAME}}": user?.name || "",
         "{{EX_DESIGNATION}}": user?.status || "",
+        // ✅ Fees
+        "{{DOCUMENT_FEE}}": parseFloat(form.document_fee || "0").toLocaleString(
+          "en-LK",
+        ),
+        "{{COURIER_FEE}}": parseFloat(form.courier_fee || "0").toLocaleString(
+          "en-LK",
+        ),
       };
 
       const doc = win.document;
@@ -634,6 +652,29 @@ const PrintLoanAgreementDoc = () => {
                           <span className="font-bold text-green-600">
                             Rs.{" "}
                             {parseFloat(selectedProduct.price).toLocaleString()}
+                          </span>
+                        </div>
+                        {/* ✅ Fees */}
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-600">
+                            Document Fee:
+                          </span>
+                          <span className="font-medium text-amber-600">
+                            Rs.{" "}
+                            {parseFloat(
+                              form.document_fee || "0",
+                            ).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-semibold text-gray-600">
+                            Courier Fee:
+                          </span>
+                          <span className="font-medium text-amber-600">
+                            Rs.{" "}
+                            {parseFloat(
+                              form.courier_fee || "0",
+                            ).toLocaleString()}
                           </span>
                         </div>
                       </div>
