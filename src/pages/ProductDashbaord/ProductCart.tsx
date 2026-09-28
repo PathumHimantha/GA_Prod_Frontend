@@ -135,6 +135,7 @@ const ProductCart = () => {
 
   // Get user ID from auth context
   const userId = user?.id || localStorage.getItem("userId") || "89";
+  const userRole = user?.status || user?.role || "";
 
   // Clear messages function
   const clearMessages = () => {
@@ -153,7 +154,7 @@ const ProductCart = () => {
     clearMessages();
     try {
       const response = await fetch(
-        `${API_BASE_URL}/cart/user/${encodeURIComponent(userId)}`,
+        `${API_BASE_URL}/cart/user/${encodeURIComponent(userId)}?userid=${encodeURIComponent(String(userId))}&role=${encodeURIComponent(userRole)}`,
       );
       if (!response.ok) {
         const data = await response.json();
