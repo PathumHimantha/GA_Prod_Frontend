@@ -26,6 +26,7 @@ import PrintProducts from "./pages/DocPrint/PrintProducts";
 import RequestedProducts from "./pages/products/RequestedProducts";
 import ProductPurchases from "./pages/Reports/DailyProductPurchases";
 import CenterPayments from "./pages/Reports/CenterPayments";
+import ProductTracking from "./pages/ProductDashbaord/ProductTracking";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="product/:id" element={<SingleProduct />} />
               <Route path="product-cart" element={<ProductCart />} />
               <Route path="orders" element={<ManageOrders />} />
+              <Route path="product-tracking" element={<ProductTracking />} />
               <Route path="product-payments" element={<ProductPayments />} />
               <Route path="single-payments" element={<SinglePayments />} />
               <Route path="product-repayments" element={<Repayment />} />

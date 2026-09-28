@@ -139,4 +139,8 @@ export const API = {
     delete: (id: string) => `${API_BASE_URL}/api/products/${id}`,
     uploadImages: `${API_BASE_URL}/api/products/upload-images`,
   },
+
+  orders: {
+    getOrderStatus: `${API_BASE_URL}/loans/get_order_status`,
+  },
 };

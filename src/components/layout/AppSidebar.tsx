@@ -36,6 +36,11 @@ const menuGroups: MenuGroup[] = [
         path: "/dashboard/product-cart",
         icon: ShoppingCart,
       },
+      {
+        label: "Product Tracking",
+        path: "/dashboard/product-tracking",
+        icon: MapPin,
+      },
     ],
   },
   {
