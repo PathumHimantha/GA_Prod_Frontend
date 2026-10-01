@@ -15,6 +15,7 @@ import {
   Calendar,
   Send,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -655,32 +656,46 @@ const ProductDashboard = () => {
                             <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
                               Out of Stock
                             </span>
-                            <Button
-                              onClick={() => openRequestModal(product)}
-                              disabled={isRequesting || isRequested}
-                              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
-                                isRequested
-                                  ? "bg-green-500 hover:bg-green-600 text-white"
-                                  : "bg-blue-500 hover:bg-blue-600 text-white"
-                              } hover:shadow-md active:scale-95`}
-                            >
-                              {isRequesting ? (
-                                <>
-                                  <RefreshCw className="w-4 h-4 animate-spin" />
-                                  Requesting...
-                                </>
-                              ) : isRequested ? (
-                                <>
-                                  <CheckCircle className="w-4 h-4" />
-                                  Requested
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="w-4 h-4" />
-                                  Request
-                                </>
-                              )}
-                            </Button>
+                            <div className="flex items-center gap-1.5">
+                              {/* ✅ View button — opens SingleProduct page */}
+                              <Button
+                                onClick={() =>
+                                  navigate(`/dashboard/product/${product.id}`)
+                                }
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium transition-all text-sm border-gray-300  hover:shadow-md active:scale-95"
+                              >
+                                <Eye className="w-4 h-4" />
+                                View
+                              </Button>
+
+                              {/* Existing Request button */}
+                              <Button
+                                onClick={() => openRequestModal(product)}
+                                disabled={isRequesting || isRequested}
+                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium transition-all text-sm ${
+                                  isRequested
+                                    ? "bg-green-500 hover:bg-green-600 text-white"
+                                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                                } hover:shadow-md active:scale-95`}
+                              >
+                                {isRequesting ? (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                    Requesting...
+                                  </>
+                                ) : isRequested ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4" />
+                                    Requested
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="w-4 h-4" />
+                                    Request
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         ) : (
                           <Button
