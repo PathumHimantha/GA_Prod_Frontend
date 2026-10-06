@@ -188,156 +188,145 @@ const ManageOrders = () => {
     }
   };
 
-  // Print order details
+  // Print order details — half-page A4 From/To label
   const printOrder = (order: Order) => {
-    const price = getNumericValue(order.price);
-    const totalAmount = getNumericValue(order.total_amount);
-    const weekPayment = getNumericValue(order.week_payment);
-
-    const printWindow = window.open("", "_blank", "width=800,height=600");
+    const printWindow = window.open("", "_blank", "width=900,height=600");
     if (!printWindow) {
       alert("Please allow popups to print");
       return;
     }
 
-    const statusColors = {
-      pending: "#f59e0b",
-      approved: "#3b82f6",
-      processing: "#8b5cf6",
-      shipped: "#06b6d4",
-      delivered: "#22c55e",
-      cancelled: "#ef4444",
-    };
-
     printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Order Details - ${order.order_code}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-            .header { text-align: center; border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
-            .header h1 { color: #f97316; margin: 0; font-size: 28px; }
-            .header p { color: #6b7280; margin: 5px 0 0; }
-            .order-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-            .order-info .label { color: #6b7280; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-            .order-info .value { font-size: 16px; font-weight: 500; margin-top: 4px; }
-            .customer-section { background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
-            .customer-section h3 { margin: 0 0 15px; color: #374151; font-size: 18px; }
-            .customer-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .customer-details .label { color: #6b7280; font-size: 12px; }
-            .customer-details .value { font-size: 14px; font-weight: 500; }
-            .product-details { background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 30px; }
-            .product-details table { width: 100%; border-collapse: collapse; }
-            .product-details th { background: #f3f4f6; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6b7280; }
-            .product-details td { padding: 12px; border-top: 1px solid #e5e7eb; }
-            .summary { background: #fef3c7; padding: 20px; border-radius: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
-            .summary .label { color: #6b7280; font-size: 14px; }
-            .summary .amount { font-size: 24px; font-weight: bold; color: #f97316; }
-            .status-badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; background: ${statusColors[order.order_status as keyof typeof statusColors] || "#6b7280"}; color: white; }
-            .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }
-            @media print { .no-print { display: none; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>📄 Order Details</h1>
-            <p>Order Code: ${order.order_code}</p>
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Order Label - ${order.order_code}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+          * { box-sizing: border-box; }
+          html, body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+          }
+          .label {
+            width: 210mm;
+            height: 148.5mm; /* exactly half of A4 (297/2) */
+            padding: 15mm 20mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 2px solid #111;
+          }
+          .label-header {
+            text-align: center;
+            border-bottom: 1px dashed #999;
+            padding-bottom: 6mm;
+          }
+          .label-header h1 {
+            margin: 0;
+            font-size: 16pt;
+            letter-spacing: 0.5px;
+          }
+          .label-header p {
+            margin: 2mm 0 0;
+            font-size: 9pt;
+            color: #555;
+            font-family: monospace;
+          }
+          .addresses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12mm;
+            padding: 10mm 0;
+            flex: 1;
+          }
+          .address-block {
+            display: flex;
+            flex-direction: column;
+          }
+          .address-block .tag {
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 2mm;
+          }
+          .address-block .name {
+            font-size: 13pt;
+            font-weight: bold;
+            margin-bottom: 2mm;
+            line-height: 1.3;
+          }
+          .address-block .line {
+            font-size: 10.5pt;
+            line-height: 1.45;
+            margin-bottom: 1mm;
+          }
+          .address-block .phone {
+            font-size: 11pt;
+            font-weight: bold;
+            margin-top: 2mm;
+          }
+          .label-footer {
+            border-top: 1px dashed #999;
+            padding-top: 4mm;
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+          }
+          @media print {
+            .label {
+              border: none;
+              padding: 12mm 18mm;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="label">
+          <div class="label-header">
+            <h1>GOLDEN ASIA INVESTMENT (PVT) LTD</h1>
+            <p>Order: ${order.order_code}</p>
           </div>
 
-          <div class="order-info">
-            <div>
-              <div class="label">Order Status</div>
-              <div class="value"><span class="status-badge">${order.order_status.toUpperCase()}</span></div>
+          <div class="addresses">
+            <!-- FROM -->
+            <div class="address-block">
+              <div class="tag">From</div>
+              <div class="name">Golden Asia Investment (Pvt) Ltd</div>
+              <div class="line">Kandy Road, Annasigala</div>
+              <div class="line">Molagoda, Kegalle</div>
+              <div class="phone">Tel: 035 22 34 707</div>
             </div>
-            <div>
-              <div class="label">Date Created</div>
-              <div class="value">${new Date(order.created_at).toLocaleString()}</div>
-            </div>
-            <div>
-              <div class="label">Loan Code</div>
-              <div class="value">${order.loan_code}</div>
-            </div>
-            <div>
-              <div class="label">Product ID</div>
-              <div class="value">${order.product_id}</div>
+
+            <!-- TO -->
+            <div class="address-block">
+              <div class="tag">To</div>
+              <div class="name">${order.customer_name || "—"}</div>
+              <div class="line">${order.customer_address || "—"}</div>
+              <div class="phone">Tel: ${order.customer_phone || "—"}</div>
             </div>
           </div>
 
-          <div class="customer-section">
-            <h3>👤 Customer Information</h3>
-            <div class="customer-details">
-              <div>
-                <div class="label">Name</div>
-                <div class="value">${order.customer_name}</div>
-              </div>
-              <div>
-                <div class="label">NIC</div>
-                <div class="value">${order.customer_nic}</div>
-              </div>
-              <div>
-                <div class="label">Phone</div>
-                <div class="value">${order.customer_phone || "—"}</div>
-              </div>
-              <div style="grid-column: span 2;">
-                <div class="label">Address</div>
-                <div class="value">${order.customer_address || "—"}</div>
-              </div>
-            </div>
+          <div class="label-footer">
+            Please handle with care · Thank you
           </div>
+        </div>
 
-          <div class="product-details">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product ID</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>${order.product_id}</td>
-                  <td>${order.quantity}</td>
-                  <td>Rs. ${price.toFixed(2)}</td>
-                  <td>Rs. ${totalAmount.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="summary">
-            <div>
-              <div class="label">Period (Weeks)</div>
-              <div style="font-size: 18px; font-weight: bold;">${order.period_weeks}</div>
-            </div>
-            <div>
-              <div class="label">Week Payment</div>
-              <div style="font-size: 18px; font-weight: bold; color: #22c55e;">Rs. ${weekPayment.toFixed(2)}</div>
-            </div>
-            <div>
-              <div class="label">Total Amount</div>
-              <div class="amount">Rs. ${totalAmount.toFixed(2)}</div>
-            </div>
-          </div>
-
-          <div class="footer">
-            <p>Generated on ${new Date().toLocaleString()}</p>
-            <p>© ${new Date().getFullYear()} Golden Asia - All Rights Reserved</p>
-          </div>
-
-          <div class="no-print" style="text-align: center; margin-top: 20px;">
-            <button onclick="window.print()" style="padding: 10px 30px; background: #f97316; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
-              🖨️ Print
-            </button>
-            <button onclick="window.close()" style="padding: 10px 30px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; margin-left: 10px;">
-              Close
-            </button>
-          </div>
-        </body>
-      </html>
-    `);
+        <script>
+          window.onload = function () {
+            window.print();
+          };
+        </script>
+      </body>
+    </html>
+  `);
     printWindow.document.close();
   };
 
