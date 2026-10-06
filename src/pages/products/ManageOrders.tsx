@@ -50,6 +50,7 @@ type Order = {
   status: "active" | "inactive";
   created_by: string;
   created_at: string;
+  ex_contact?: string; // Optional field for external contact
   updated_at: string;
   courier_charge?: string | number;
   purchase_agreement?: string; // ✅ Add this field
@@ -290,10 +291,7 @@ const ManageOrders = () => {
       </head>
       <body>
         <div class="label">
-          <div class="label-header">
-            <h1>GOLDEN ASIA INVESTMENT (PVT) LTD</h1>
-            <p>Order: ${order.order_code}</p>
-          </div>
+
 
           <div class="addresses">
             <!-- FROM -->
@@ -302,7 +300,9 @@ const ManageOrders = () => {
               <div class="name">Golden Asia Investment (Pvt) Ltd</div>
               <div class="line">Kandy Road, Annasigala</div>
               <div class="line">Molagoda, Kegalle</div>
-              <div class="phone">Tel: 035 22 34 707</div>
+                       <div class="name">${order.ex_contact || "—"}</div>
+              <div class="phone">Tel: 0706624675</div>
+       
             </div>
 
             <!-- TO -->
@@ -314,9 +314,6 @@ const ManageOrders = () => {
             </div>
           </div>
 
-          <div class="label-footer">
-            Please handle with care · Thank you
-          </div>
         </div>
 
         <script>
