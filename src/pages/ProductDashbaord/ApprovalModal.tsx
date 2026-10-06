@@ -472,9 +472,9 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   + Rs. {documentFee.toFixed(2)}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {selectedGroup.total_amount < 10000
-                    ? "(Total < Rs. 10,000)"
-                    : "(Total ≥ Rs. 10,000)"}
+                  {selectedGroup.total_amount < 15000
+                    ? "(Total < Rs. 15,000)"
+                    : "(Total ≥ Rs. 15,000)"}
                 </p>
               </div>
               <div>
