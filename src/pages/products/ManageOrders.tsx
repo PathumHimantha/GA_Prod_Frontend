@@ -215,6 +215,7 @@ const ManageOrders = () => {
     color: #111;
   }
   .label {
+  margin-top: 8px;
     width: 210mm;
     height: 148.5mm; /* exactly half of A4 (297/2) */
     padding: 15mm 20mm;
