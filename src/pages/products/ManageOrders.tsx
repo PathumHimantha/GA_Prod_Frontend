@@ -281,9 +281,9 @@ const ManageOrders = () => {
     border-top: 1px dashed #999;
     padding-top: 5mm;
     text-align: center;
-    font-size: 13pt;          /* ← was 8pt */
+    font-size: 20pt;          /* ← was 8pt */
     color: #fd0101;
-    font-weight: 500;
+    font-weight: 600;
   }
   @media print {
     .label {
