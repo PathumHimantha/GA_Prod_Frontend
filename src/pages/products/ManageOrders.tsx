@@ -300,8 +300,8 @@ const ManageOrders = () => {
               <div class="name">Golden Asia Investment (Pvt) Ltd</div>
               <div class="line">Kandy Road, Annasigala</div>
               <div class="line">Molagoda, Kegalle</div>
-                       <div class="name">${order.ex_contact || "—"}</div>
-              <div class="phone">Tel: 0706624675</div>
+              <div class="phone">Tel:${order.ex_contact || "—"}</div>
+              <div class="phone"> 0706624675</div>
        
             </div>
 
