@@ -401,9 +401,9 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <div>
                 <Label className="text-xs text-gray-500">Rate</Label>
                 <p className="text-sm text-gray-600">
-                  1st kg: Rs. 560
+                  1st kg: Rs. 580
                   <br />
-                  Additional: Rs. 180/kg
+                  Additional: Rs. 160/kg
                 </p>
               </div>
               <div>
