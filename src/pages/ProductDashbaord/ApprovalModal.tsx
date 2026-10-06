@@ -110,8 +110,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
   const calculateCourierCharge = (weight: number): number => {
     if (weight <= 0) return 0;
-    const firstKgRate = 560;
-    const additionalKgRate = 180;
+    const firstKgRate = 580;
+    const additionalKgRate = 160;
     const roundedWeight = Math.ceil(weight);
 
     if (roundedWeight <= 1) {
