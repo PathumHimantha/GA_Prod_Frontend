@@ -202,92 +202,95 @@ const ManageOrders = () => {
     <html>
       <head>
         <title>Order Label - ${order.order_code}</title>
-        <style>
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
-          * { box-sizing: border-box; }
-          html, body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #111;
-          }
-          .label {
-            width: 210mm;
-            height: 148.5mm; /* exactly half of A4 (297/2) */
-            padding: 15mm 20mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 2px solid #111;
-          }
-          .label-header {
-            text-align: center;
-            border-bottom: 1px dashed #999;
-            padding-bottom: 6mm;
-          }
-          .label-header h1 {
-            margin: 0;
-            font-size: 16pt;
-            letter-spacing: 0.5px;
-          }
-          .label-header p {
-            margin: 2mm 0 0;
-            font-size: 9pt;
-            color: #555;
-            font-family: monospace;
-          }
-          .addresses {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12mm;
-            padding: 10mm 0;
-            flex: 1;
-          }
-          .address-block {
-            display: flex;
-            flex-direction: column;
-          }
-          .address-block .tag {
-            font-size: 8pt;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 2mm;
-          }
-          .address-block .name {
-            font-size: 13pt;
-            font-weight: bold;
-            margin-bottom: 2mm;
-            line-height: 1.3;
-          }
-          .address-block .line {
-            font-size: 10.5pt;
-            line-height: 1.45;
-            margin-bottom: 1mm;
-          }
-          .address-block .phone {
-            font-size: 11pt;
-            font-weight: bold;
-            margin-top: 2mm;
-          }
-          .label-footer {
-            border-top: 1px dashed #999;
-            padding-top: 4mm;
-            text-align: center;
-            font-size: 8pt;
-            color: #888;
-          }
-          @media print {
-            .label {
-              border: none;
-              padding: 12mm 18mm;
-            }
-          }
-        </style>
+       <style>
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111;
+  }
+  .label {
+    width: 210mm;
+    height: 148.5mm; /* exactly half of A4 (297/2) */
+    padding: 15mm 20mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 2px solid #111;
+  }
+  .label-header {
+    text-align: center;
+    border-bottom: 1px dashed #999;
+    padding-bottom: 6mm;
+  }
+  .label-header h1 {
+    margin: 0;
+    font-size: 22pt;          /* ← was 16pt */
+    letter-spacing: 0.5px;
+    font-weight: 800;
+  }
+  .label-header p {
+    margin: 2mm 0 0;
+    font-size: 12pt;          /* ← was 9pt */
+    color: #333;
+    font-family: monospace;
+    font-weight: 600;
+  }
+  .addresses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12mm;
+    padding: 10mm 0;
+    flex: 1;
+  }
+  .address-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .address-block .tag {
+    font-size: 12pt;          /* ← was 8pt */
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #333;
+    text-transform: uppercase;
+    margin-bottom: 3mm;
+  }
+  .address-block .name {
+    font-size: 17pt;          /* ← was 13pt */
+    font-weight: bold;
+    margin-bottom: 3mm;
+    line-height: 1.3;
+  }
+  .address-block .line {
+    font-size: 13.5pt;        /* ← was 10.5pt */
+    line-height: 1.5;
+    margin-bottom: 1.5mm;
+  }
+  .address-block .phone {
+    font-size: 15pt;          /* ← was 11pt */
+    font-weight: bold;
+    margin-top: 3mm;
+  }
+  .label-footer {
+    border-top: 1px dashed #999;
+    padding-top: 5mm;
+    text-align: center;
+    font-size: 11pt;          /* ← was 8pt */
+    color: #666;
+    font-weight: 500;
+  }
+  @media print {
+    .label {
+      border: none;
+      padding: 12mm 18mm;
+    }
+  }
+</style>
       </head>
       <body>
           <div class="label">
