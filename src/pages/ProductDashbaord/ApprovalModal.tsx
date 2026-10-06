@@ -226,8 +226,12 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     selectedGroup.total_amount,
     weight,
   );
-  const weekPayment = totalWithCourier / periodWeeks;
-
+  const weekPayment = selectedGroup.total_amount / periodWeeks;
+  // ✅ Document fee: Rs. 500 if total < 10,000, else Rs. 1,000
+  const calculateDocumentFee = (totalAmount: number): number => {
+    return totalAmount < 10000 ? 500 : 1000;
+  };
+  const documentFee = calculateDocumentFee(selectedGroup.total_amount);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
@@ -401,9 +405,9 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <div>
                 <Label className="text-xs text-gray-500">Rate</Label>
                 <p className="text-sm text-gray-600">
-                  1st kg: Rs. 560
+                  1st kg: Rs. 580
                   <br />
-                  Additional: Rs. 180/kg
+                  Additional: Rs. 160/kg
                 </p>
               </div>
               <div>
@@ -460,6 +464,17 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <Label className="text-xs text-gray-500">Week Payment</Label>
                 <p className="text-lg font-bold text-green-600">
                   Rs. {weekPayment.toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Document Fee</Label>
+                <p className="text-md font-semibold text-purple-600">
+                  + Rs. {documentFee.toFixed(2)}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {selectedGroup.total_amount < 10000
+                    ? "(Total < Rs. 10,000)"
+                    : "(Total ≥ Rs. 10,000)"}
                 </p>
               </div>
               <div>
