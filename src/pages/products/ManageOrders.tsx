@@ -311,6 +311,7 @@ const ManageOrders = () => {
               <div class="name">${order.customer_name || "—"}</div>
               <div class="line">${order.customer_address || "—"}</div>
               <div class="phone">Tel: ${order.customer_phone || "—"}</div>
+              <p>Order: ${order.order_code}</p>
             </div>
           </div>
 
