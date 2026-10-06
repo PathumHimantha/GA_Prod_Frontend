@@ -290,10 +290,13 @@ const ManageOrders = () => {
         </style>
       </head>
       <body>
-        <div class="label">
+          <div class="label">
+          <div class="label-header">
+            <h1>GOLDEN ASIA INVESTMENT (PVT) LTD</h1>
+            <p>Order: ${order.order_code}</p>
+          </div>
 
-
-          <div class="addresses">
+ <div class="addresses">
             <!-- FROM -->
             <div class="address-block">
               <div class="tag">From</div>
@@ -311,10 +314,13 @@ const ManageOrders = () => {
               <div class="name">${order.customer_name || "—"}</div>
               <div class="line">${order.customer_address || "—"}</div>
               <div class="phone">Tel: ${order.customer_phone || "—"}</div>
-              <p>Order: ${order.order_code}</p>
+        
             </div>
           </div>
 
+          <div class="label-footer">
+            Please handle with care · Thank you
+          </div>
         </div>
 
         <script>
