@@ -578,9 +578,7 @@ const ProductCart = () => {
                                 </div>
                                 <div>
                                   <h3 className="font-semibold text-gray-900">
-                                    {customer?.name ||
-                                      customer?.cname ||
-                                      group.customer_nic}
+                                    {customer?.cname || group.customer_nic}
                                   </h3>
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     <Badge
@@ -811,6 +809,7 @@ const ProductCart = () => {
         onApprove={async ({
           customerAddress,
           customerPhone,
+          customerPhone2,
           periodWeeks,
           courierCharge,
           purchaseAgreementFront,
@@ -831,10 +830,11 @@ const ProductCart = () => {
             formData.append("customer_nic", selectedGroup.customer_nic);
             formData.append(
               "customer_name",
-              customer?.name || customer?.cname || selectedGroup.customer_nic,
+              customer?.cname || selectedGroup.customer_nic,
             );
             formData.append("customer_address", customerAddress);
             formData.append("customer_phone", customerPhone);
+            formData.append("customer_phone2", customerPhone2 || "");
             formData.append("product_ids", JSON.stringify(productIds));
             formData.append("product_id", firstItem?.product_id || "");
             formData.append("total_amount", String(totalAmount));

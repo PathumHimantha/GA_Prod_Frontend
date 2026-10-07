@@ -56,6 +56,7 @@ interface ApprovalModalProps {
   onApprove: (data: {
     customerAddress: string;
     customerPhone: string;
+    customerPhone2: string;
     periodWeeks: number;
     courierCharge: number;
     purchaseAgreementFront: File | null;
@@ -84,6 +85,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerPhone2, setCustomerPhone2] = useState("");
   const [periodWeeks, setPeriodWeeks] = useState(13);
   const [purchaseAgreementFront, setPurchaseAgreementFront] =
     useState<File | null>(null);
@@ -100,6 +102,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       const customer = selectedGroup.customer_details?.customer;
       setCustomerAddress(customer?.address || "");
       setCustomerPhone(customer?.phone1 || "");
+      setCustomerPhone2(customer?.phone2 || "");
       setIsEditing(false);
       setPurchaseAgreementFront(null);
       setPurchaseAgreementBack(null);
@@ -179,6 +182,14 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       setAgreementError("Purchase Agreement is required");
       return;
     }
+    if (!customerPhone.trim()) {
+      setAgreementError("Phone 1 is required");
+      return;
+    }
+    if (!customerPhone2.trim()) {
+      setAgreementError("Phone 2 is required");
+      return;
+    }
     if (!selectedGroup) return;
 
     // ✅ Use the current state values for address and phone
@@ -203,6 +214,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     onApprove({
       customerAddress: customerAddress || customer?.address || "",
       customerPhone: customerPhone || customer?.phone1 || "",
+      customerPhone2: customerPhone2 || customer?.phone2 || "",
       periodWeeks,
       courierCharge,
       purchaseAgreementFront,
@@ -297,9 +309,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <Label className="text-xs text-gray-500">Customer Name</Label>
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   <User className="w-3 h-3 text-gray-400" />
-                  {customer?.name ||
-                    customer?.cname ||
-                    selectedGroup.customer_nic}
+                  {customer?.cname || selectedGroup.customer_nic}
                 </p>
               </div>
               <div>
@@ -323,6 +333,25 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   <p className="text-sm text-gray-700 flex items-center gap-1">
                     <Phone className="w-3 h-3 text-gray-400" />
                     {customerPhone || customer?.phone1 || "—"}
+                  </p>
+                )}
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">
+                  Phone 2 <span className="text-gray-400"></span>
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={customerPhone2}
+                    onChange={(e) => setCustomerPhone2(e.target.value)}
+                    className="mt-1 h-9"
+                    placeholder="Enter alternate phone number"
+                    disabled={approving}
+                  />
+                ) : (
+                  <p className="text-sm text-gray-700 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-gray-400" />
+                    {customerPhone2 || customer?.phone2 || "—"}
                   </p>
                 )}
               </div>
@@ -368,7 +397,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   className="flex justify-between items-center text-sm border-b border-gray-200 last:border-0 pb-1 last:pb-0"
                 >
                   <span className="font-medium text-gray-700">
-                    {item.product_name}
+                    {item.product_name} - {item.product_id}
                   </span>
                   <div className="flex items-center gap-3">
                     <Badge variant="secondary" className="text-xs">
@@ -483,7 +512,12 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               </div>
             </div>
           </div>
-
+          {agreementError && (
+            <p className="text-sm text-red-500 mt-2 mb-2 flex items-center gap-1 bg-red-50 p-2 rounded border border-red-200">
+              <AlertCircle className="w-3 h-3" />
+              {agreementError}
+            </p>
+          )}
           {/* Purchase Agreement Upload */}
           {/* Purchase Agreement Upload */}
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
@@ -542,12 +576,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       {purchaseAgreementFront ? "Change" : "Browse"}
                     </Button>
                   </div>
-                  {agreementError && (
-                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {agreementError}
-                    </p>
-                  )}
+
                   {purchaseAgreementFront && (
                     <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
