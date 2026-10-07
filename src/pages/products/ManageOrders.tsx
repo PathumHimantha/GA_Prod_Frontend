@@ -21,6 +21,8 @@ import {
   Eye,
   FileText,
   Download,
+  Pencil,
+  CheckCircle,
 } from "lucide-react";
 import { API_BASE_URL } from "@/apiConfig";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,6 +56,9 @@ type Order = {
   updated_at: string;
   courier_charge?: string | number;
   purchase_agreement?: string; // ✅ Add this field
+  purchase_agreement_back?: string;
+  courier_slip?: string | null; // ✅ new
+  courier_tracking_no?: string | null; // ✅ new
 };
 
 type PaginationData = {
@@ -79,6 +84,33 @@ const ManageOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  // ✅ Courier edit state
+  const [showCourierModal, setShowCourierModal] = useState(false);
+  const [courierOrder, setCourierOrder] = useState<Order | null>(null);
+  const [courierTrackingNo, setCourierTrackingNo] = useState("");
+  const [courierSlipFile, setCourierSlipFile] = useState<File | null>(null);
+  const [savingCourier, setSavingCourier] = useState(false);
+
+  // ✅ Success / Error message state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const clearMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  };
+
+  const flashSuccess = (msg: string) => {
+    setSuccessMessage(msg);
+    setErrorMessage(null);
+    setTimeout(() => setSuccessMessage(null), 4000);
+  };
+
+  const flashError = (msg: string) => {
+    setErrorMessage(msg);
+    setSuccessMessage(null);
+    setTimeout(() => setErrorMessage(null), 5000);
+  };
 
   const { hasRole } = useAuth();
   if (!hasRole("admin")) {
@@ -180,7 +212,7 @@ const ManageOrders = () => {
       }
 
       await loadOrders(currentPage, searchTerm, statusFilter);
-      alert(`✅ Order status updated to ${newStatus}`);
+      flashSuccess(`✅ Order status updated to ${newStatus}`);
     } catch (err: any) {
       console.error("Error updating order status:", err);
       alert(err.message || "Failed to update order status");
@@ -188,7 +220,66 @@ const ManageOrders = () => {
       setUpdatingStatus(null);
     }
   };
+  // ✅ Save courier slip + tracking number
+  const saveCourierInfo = async () => {
+    if (!courierOrder) return;
 
+    setSavingCourier(true);
+    try {
+      const formData = new FormData();
+      formData.append("courier_tracking_no", courierTrackingNo || "");
+      if (courierSlipFile) {
+        formData.append("courier_slip", courierSlipFile);
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/loans/orders/${courierOrder.order_code}/courier`,
+        {
+          method: "PUT",
+          body: formData,
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save courier info");
+      }
+
+      // Update the local orders list with the new values
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_code === courierOrder.order_code
+            ? {
+                ...o,
+                courier_slip: data.data.courier_slip,
+                courier_tracking_no: data.data.courier_tracking_no,
+              }
+            : o,
+        ),
+      );
+
+      setShowCourierModal(false);
+      setCourierOrder(null);
+      setCourierSlipFile(null);
+      setCourierTrackingNo("");
+
+      // Refresh to keep in sync
+      await loadOrders(currentPage, searchTerm, statusFilter);
+    } catch (err: any) {
+      console.error("Error saving courier info:", err);
+      alert(err.message || "Failed to save courier info");
+    } finally {
+      setSavingCourier(false);
+    }
+  };
+
+  // ✅ Open the courier modal pre-filled
+  const openCourierModal = (order: Order) => {
+    setCourierOrder(order);
+    setCourierTrackingNo(order.courier_tracking_no || "");
+    setCourierSlipFile(null);
+    setShowCourierModal(true);
+  };
   // Print order details — half-page A4 From/To label
   const printOrder = (order: Order) => {
     const printWindow = window.open("", "_blank", "width=900,height=600");
@@ -343,7 +434,7 @@ const ManageOrders = () => {
     {
       value: "pending",
       label: "Pending",
-      color: "bg-yellow-100 text-yellow-800",
+      color: "bg-yellow-100 text-yellow-800 ",
     },
     {
       value: "approved",
@@ -370,7 +461,7 @@ const ManageOrders = () => {
 
   const getStatusBadge = (status: string) => {
     const option = statusOptions.find((s) => s.value === status);
-    return option ? option.color : "bg-gray-100 text-gray-800";
+    return option ? option.color : "bg-gray-100 text-gray-800 ";
   };
 
   const columns: ColumnDef<Order>[] = [
@@ -384,14 +475,29 @@ const ManageOrders = () => {
       ),
     },
     {
-      key: "customer_name",
-      header: "Customer",
-      render: (_v, row) => (
-        <div>
-          <div className="font-medium text-gray-900">{row.customer_name}</div>
-          <div className="text-xs text-gray-500">{row.customer_nic}</div>
-        </div>
+      key: "courier_tracking_no",
+      header: "Tracking No",
+      render: (v) => (
+        <span className="text-xs font-mono text-gray-700">{v || "—"}</span>
       ),
+    },
+    {
+      key: "courier_slip",
+      header: "Courier Slip",
+      render: (v) =>
+        v ? (
+          <a
+            href={v}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+          >
+            <FileText className="w-3 h-3" />
+            View
+          </a>
+        ) : (
+          <span className="text-xs text-gray-400">—</span>
+        ),
     },
     {
       key: "customer_phone",
@@ -406,6 +512,16 @@ const ManageOrders = () => {
           {v}
         </span>
       ),
+    },
+    {
+      key: "loan_code",
+      header: "Loan Code",
+      render: (v, row) => {
+        const loancode = row.loan_code;
+        return (
+          <div className="text-sm text-green-600 font-medium">{loancode}</div>
+        );
+      },
     },
     {
       key: "quantity",
@@ -434,18 +550,7 @@ const ManageOrders = () => {
         );
       },
     },
-    {
-      key: "week_payment",
-      header: "Week Payment",
-      render: (v, row) => {
-        const weekPayment = getNumericValue(row.week_payment);
-        return (
-          <div className="text-sm text-green-600 font-medium">
-            Rs. {weekPayment.toFixed(2)}
-          </div>
-        );
-      },
-    },
+
     {
       key: "order_status",
       header: "Status",
@@ -494,6 +599,18 @@ const ManageOrders = () => {
           >
             <Eye className="w-4 h-4" />
           </Button>
+
+          {/* ✅ Edit Courier */}
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => openCourierModal(row)}
+            title="Add/Edit courier slip & tracking"
+            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+
           <Button
             size="icon"
             variant="ghost"
@@ -569,6 +686,37 @@ const ManageOrders = () => {
           </Button>
         </div>
       </div>
+      {/* ✅ Success Message */}
+      {successMessage && (
+        <div className="p-4 bg-green-100 border border-green-400 text-green-800 rounded-xl flex items-center justify-between">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <span className="font-medium">{successMessage}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="text-green-600 hover:text-green-800 flex-shrink-0"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* ✅ Error Message */}
+      {errorMessage && (
+        <div className="p-4 bg-red-100 border border-red-400 text-red-800 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+          <button
+            onClick={() => setErrorMessage(null)}
+            className="text-red-600 hover:text-red-800 flex-shrink-0"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Statistics Cards */}
       {!loading && orders.length > 0 && (
@@ -743,6 +891,13 @@ const ManageOrders = () => {
                       </p>
                     </div>
                     <div>
+                      <p className="text-xs text-gray-500">Week Payment</p>
+                      <p className="font-medium text-green-600">
+                        Rs.{" "}
+                        {getNumericValue(selectedOrder.week_payment).toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-xs text-gray-500">Quantity</p>
                       <p className="font-medium text-gray-900">
                         {selectedOrder.quantity}
@@ -761,13 +916,7 @@ const ManageOrders = () => {
                         {getNumericValue(selectedOrder.total_amount).toFixed(2)}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Week Payment</p>
-                      <p className="font-medium text-green-600">
-                        Rs.{" "}
-                        {getNumericValue(selectedOrder.week_payment).toFixed(2)}
-                      </p>
-                    </div>
+
                     <div>
                       <p className="text-xs text-gray-500">Period</p>
                       <p className="font-medium text-gray-900">
@@ -848,7 +997,78 @@ const ManageOrders = () => {
                     )}
                   </div>
                 )}
-
+                {/* ✅ Purchase Agreement — Back Page */}
+                {selectedOrder.purchase_agreement_back && (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                      <FileText className="w-4 h-4 text-orange-500" />
+                      Purchase Agreement – Back Page
+                    </h3>
+                    <div className="flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-200">
+                      <FileText className="w-6 h-6 text-orange-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700 truncate">
+                          {selectedOrder.purchase_agreement_back
+                            .split("/")
+                            .pop()}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Click to view or download
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            window.open(
+                              selectedOrder.purchase_agreement_back,
+                              "_blank",
+                            )
+                          }
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const link = document.createElement("a");
+                            link.href = selectedOrder.purchase_agreement_back!;
+                            link.download =
+                              selectedOrder
+                                .purchase_agreement_back!.split("/")
+                                .pop() || "agreement_back";
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                    {selectedOrder.purchase_agreement_back.match(
+                      /\.(jpg|jpeg|png|gif|webp)$/i,
+                    ) && (
+                      <div className="mt-3 p-2 bg-white rounded-lg border border-gray-200">
+                        <img
+                          src={selectedOrder.purchase_agreement_back}
+                          alt="Purchase Agreement Back"
+                          className="max-h-64 w-auto mx-auto rounded-lg object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
                 {/* Status Update */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-3">
@@ -896,6 +1116,123 @@ const ManageOrders = () => {
                     Updated:{" "}
                     {new Date(selectedOrder.updated_at).toLocaleString()}
                   </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      {/* ✅ Courier Edit Modal */}
+      {showCourierModal && courierOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowCourierModal(false)}
+          />
+          <Card className="relative w-full max-w-md shadow-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <Package className="w-5 h-5 text-orange-500" />
+                    Courier Info
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {courierOrder.order_code}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCourierModal(false)}
+                  disabled={savingCourier}
+                >
+                  <XCircle className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Tracking No */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">
+                    Tracking Number
+                  </label>
+                  <input
+                    type="text"
+                    value={courierTrackingNo}
+                    onChange={(e) => setCourierTrackingNo(e.target.value)}
+                    placeholder="Enter courier tracking number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    disabled={savingCourier}
+                  />
+                </div>
+
+                {/* Courier Slip Upload */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">
+                    Courier Slip
+                  </label>
+
+                  {/* Show existing slip (if any) */}
+                  {courierOrder.courier_slip && !courierSlipFile && (
+                    <div className="mb-2 flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <FileText className="w-5 h-5 text-blue-500" />
+                      <a
+                        href={courierOrder.courier_slip}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 hover:underline flex-1 truncate"
+                      >
+                        {courierOrder.courier_slip.split("/").pop()}
+                      </a>
+                      <a
+                        href={courierOrder.courier_slip}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        View
+                      </a>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={(e) =>
+                      setCourierSlipFile(e.target.files?.[0] || null)
+                    }
+                    className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer"
+                    disabled={savingCourier}
+                  />
+                  {courierSlipFile && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Selected: {courierSlipFile.name}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-1">
+                    JPG, PNG, or PDF (optional — leave blank to keep the
+                    existing)
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowCourierModal(false)}
+                    disabled={savingCourier}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={saveCourierInfo}
+                    disabled={savingCourier}
+                  >
+                    {savingCourier ? "Saving..." : "Save"}
+                  </Button>
                 </div>
               </div>
             </CardContent>
