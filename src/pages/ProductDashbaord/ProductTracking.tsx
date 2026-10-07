@@ -3,6 +3,8 @@ import {
   AlertCircle,
   Check,
   ChevronRight,
+  Copy,
+  ExternalLink,
   Loader2,
   MapPin,
   Package,
@@ -40,6 +42,8 @@ type Order = {
   created_at: string;
   updated_at: string;
   courier_charge?: string | number;
+  courier_slip?: string | null;
+  courier_tracking_no?: string | null;
 };
 
 const STEPS: { value: Exclude<OrderStatus, "cancelled">; label: string }[] = [
@@ -75,6 +79,7 @@ const ProductTracking = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const userId = user?.id || localStorage.getItem("userId") || "";
   const userRole = user?.status || user?.role || "";
 
@@ -112,7 +117,16 @@ const ProductTracking = () => {
     setSearch(searchInput);
     loadOrders(searchInput);
   };
-
+  // ✅ Copy tracking code to clipboard
+  const copyTrackingCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -282,6 +296,48 @@ const ProductTracking = () => {
                       </p>
                     </div>
                   </div>
+                  {/* ✅ Courier Tracking Row */}
+                  {order.courier_tracking_no && (
+                    <div className="mt-4 flex flex-col gap-2 rounded-lg border border-cyan-200 bg-cyan-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-cyan-700" />
+                        <span className="text-sm font-medium text-cyan-900">
+                          Tracking Code:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            copyTrackingCode(order.courier_tracking_no || "")
+                          }
+                          className="group inline-flex items-center gap-1.5 rounded-md border border-cyan-300 bg-white px-2.5 py-1 font-mono text-sm font-semibold text-cyan-800 transition-colors hover:bg-cyan-100"
+                          title="Click to copy"
+                        >
+                          {order.courier_tracking_no}
+                          {copiedCode === order.courier_tracking_no ? (
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-cyan-600 group-hover:text-cyan-800" />
+                          )}
+                        </button>
+                        {copiedCode === order.courier_tracking_no && (
+                          <span className="text-xs font-medium text-green-700">
+                            Copied!
+                          </span>
+                        )}
+                      </div>
+
+                      {/* ✅ Track button — opens PromptXpress tracking */}
+                      <a
+                        href="http://promptxpress.lk/TrackItem.aspx#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-cyan-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-cyan-700"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Track
+                      </a>
+                    </div>
+                  )}
                   <div className="mt-3 flex items-start gap-2 text-sm text-gray-500">
                     {order.order_status === "shipped" ? (
                       <Truck className="mt-0.5 h-4 w-4 shrink-0" />
