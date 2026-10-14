@@ -118,9 +118,28 @@
         margin-bottom: 4px;
         width: fit-content;
       }
+
+      /* ── Two-column layout: description | specs ── */
+      .catalog-card .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 4px;
+        align-items: flex-start;
+      }
+      .catalog-card .col-desc {
+        min-width: 0;
+      }
+      .catalog-card .col-specs {
+        min-width: 0;
+        border-left: 1px solid #f3f4f6;
+        padding-left: 8px;
+      }
+
+      /* Description list */
       .catalog-card ul.desc {
         list-style: none;
-        margin: 4px 0;
+        margin: 0;
         padding: 0;
       }
       .catalog-card ul.desc li {
@@ -135,6 +154,38 @@
         content: "•";
         color: #9ca3af;
       }
+
+      /* Specs list */
+      .catalog-card .specs {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .catalog-card .spec-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 4px;
+        font-size: 9px;
+        line-height: 1.2;
+      }
+      .catalog-card .spec-label {
+        color: #6b7280;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+      .catalog-card .spec-value {
+        color: #111827;
+        font-weight: 700;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .catalog-card .spec-value .spec-sub {
+        font-weight: 400;
+        color: #9ca3af;
+        font-size: 8px;
+      }
+
       .catalog-card .price-row {
         display: flex;
         align-items: baseline;
@@ -199,8 +250,54 @@
           return "Rs. " + num.toFixed(2);
         }
 
+        function buildSpecsList(p) {
+          var weight =
+            typeof p.weight === "number" ? p.weight : parseFloat(p.weight);
+          var courier =
+            typeof p.courierFee === "number"
+              ? p.courierFee
+              : parseFloat(p.courierFee);
+          var weekly =
+            typeof p.weeklyPayment === "number"
+              ? p.weeklyPayment
+              : parseFloat(p.weeklyPayment);
+          var docFee =
+            typeof p.docFee === "number" ? p.docFee : parseFloat(p.docFee);
+
+          if (isNaN(weight)) weight = 0;
+          if (isNaN(courier)) courier = 0;
+          if (isNaN(weekly)) weekly = 0;
+          if (isNaN(docFee)) docFee = 0;
+
+          function row(label, valueHtml) {
+            return (
+              '<div class="spec-row">' +
+              '<span class="spec-label">' +
+              label +
+              "</span>" +
+              '<span class="spec-value">' +
+              valueHtml +
+              "</span>" +
+              "</div>"
+            );
+          }
+
+          return (
+            '<div class="specs">' +
+            row("Product Weight", weight ? weight.toFixed(2) + " kg" : "—") +
+            row("Courier Fee", formatMoney(courier)) +
+            row(
+              "Weekly Payment " + '<span class="spec-sub">(13 W)</span>',
+              formatMoney(weekly),
+            ) +
+            row("Document Fee", formatMoney(docFee)) +
+            "</div>"
+          );
+        }
+
         function buildCard(p) {
           var descItems = (p.descriptionPoints || [])
+            .slice(0, 4)
             .map(function (point) {
               return "<li><span>" + escapeHtml(point) + "</span></li>";
             })
@@ -221,6 +318,11 @@
                 "</span>"
               : "";
 
+          var specsHtml = buildSpecsList(p);
+          var descHtml = descItems
+            ? '<ul class="desc">' + descItems + "</ul>"
+            : "";
+
           return (
             '<div class="catalog-card">' +
             '<div class="image-wrap">' +
@@ -239,7 +341,15 @@
             '<div class="category">' +
             escapeHtml(p.category) +
             "</div>" +
-            (descItems ? '<ul class="desc">' + descItems + "</ul>" : "") +
+            /* Two-column block: description | specs */
+            '<div class="two-col">' +
+            '<div class="col-desc">' +
+            descHtml +
+            "</div>" +
+            '<div class="col-specs">' +
+            specsHtml +
+            "</div>" +
+            "</div>" +
             "</div>" +
             '<div class="price-row">' +
             '<span class="price">' +
