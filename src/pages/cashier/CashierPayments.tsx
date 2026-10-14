@@ -157,14 +157,30 @@ const CashierPayments = () => {
     }));
   };
 
-  const handlePaymentChange = (index: number, value: number) => {
+  // const handlePaymentChange = (index: number, value: number) => {
+  //   const newData = [...tableData];
+  //   const maxAllowed = newData[index].balance ?? Infinity;
+  //   // Cap at loan balance
+  //   newData[index].payment = Math.min(value, maxAllowed);
+  //   setTableData(newData);
+  // };
+  const handlePaymentChange = (loanCode: string, value: number) => {
     const newData = [...tableData];
-    const maxAllowed = newData[index].balance ?? Infinity;
-    // Cap at loan balance
-    newData[index].payment = Math.min(value, maxAllowed);
+    const idx = newData.findIndex((r) => r.loanCode === loanCode);
+    if (idx === -1) return;
+
+    const row = newData[idx];
+
+    const maxAllowed =
+      typeof row.balance === "number" && row.balance > 0
+        ? row.balance
+        : Infinity;
+
+    const safe = isNaN(value) || value < 0 ? 0 : value;
+
+    row.payment = Math.min(safe, maxAllowed);
     setTableData(newData);
   };
-
   /*
   ---------------------------
   SEARCH FILTER

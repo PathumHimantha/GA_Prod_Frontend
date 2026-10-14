@@ -197,11 +197,19 @@ const ProductPayments = () => {
 
   const handlePaymentChange = (index: number, value: number) => {
     const newData = [...tableData];
-    const maxAllowed = newData[index].weekPayment || Infinity;
-    newData[index].payment = Math.min(value, maxAllowed);
+    const row = newData[index];
+
+    // Cap at the order's total amount (product loans don't have a running balance here yet)
+    const maxAllowed =
+      typeof row.totalAmount === "number" && row.totalAmount > 0
+        ? row.totalAmount
+        : Infinity;
+
+    const safe = isNaN(value) || value < 0 ? 0 : value;
+    row.payment = Math.min(safe, maxAllowed);
     setTableData(newData);
 
-    const total = newData.reduce((sum, row) => sum + row.payment, 0);
+    const total = newData.reduce((sum, r) => sum + r.payment, 0);
     setTotalPayments(total);
   };
 
@@ -577,7 +585,7 @@ const ProductPayments = () => {
                           <Input
                             type="number"
                             min="0"
-                            max={row.weekPayment}
+                            max={row.totalAmount} // ← match the handler
                             step="0.01"
                             value={row.payment}
                             onChange={(e) =>
