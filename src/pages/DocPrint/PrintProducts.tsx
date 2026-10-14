@@ -28,6 +28,8 @@ type Product = {
   images: string[];
   created_at: string;
   updated_at: string;
+  product_weight?: string | number; // ← NEW
+  courier_fee?: string | number; // ← NEW
 };
 
 type CategoryCount = {
@@ -49,7 +51,21 @@ const PrintProducts = () => {
   const getNumericPrice = (price: string | number): number => {
     return typeof price === "string" ? parseFloat(price) : price;
   };
+  // ── Compute weekly payment: price / 13 ──
+  const getWeekPayment = (price: number): number => {
+    if (!price || price <= 0) return 0;
+    return Math.ceil(price / 13);
+  };
 
+  // ── Compute document fee based on price tier ──
+  //   price <  15000  →  500
+  //   price >= 15000 and < 30000  →  1000
+  //   price >= 30000  →  1500
+  const getDocFee = (price: number): number => {
+    if (price < 15000) return 500;
+    if (price < 30000) return 1000;
+    return 1500;
+  };
   // Get current date for header
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-US", {
@@ -169,18 +185,43 @@ const PrintProducts = () => {
 
   const handlePrint = async () => {
     try {
-      const payload = filteredProducts.map((product) => ({
-        name: product.name,
-        productId: product.product_id,
-        category: product.category,
-        price: getNumericPrice(product.price),
-        retailPrice: getNumericPrice(product.retail_price),
-        image:
-          product.images && product.images[0]
-            ? getImageUrl(product.images[0])
-            : null,
-        descriptionPoints: formatDescription(product.description || ""),
-      }));
+      const payload = filteredProducts.map((product) => {
+        const price = getNumericPrice(product.price);
+
+        // ── Weight ──
+        const weightNum =
+          typeof product.product_weight === "string"
+            ? parseFloat(product.product_weight)
+            : (product.product_weight ?? 0);
+
+        // ── Courier Fee ──
+        const courierNum =
+          typeof product.courier_fee === "string"
+            ? parseFloat(product.courier_fee)
+            : (product.courier_fee ?? 0);
+
+        // ── Weekly / Doc Fee (computed) ──
+        const weeklyPayment = getWeekPayment(price);
+        const docFee = getDocFee(price);
+
+        return {
+          name: product.name,
+          productId: product.product_id,
+          category: product.category,
+          price,
+          retailPrice: getNumericPrice(product.retail_price),
+          image:
+            product.images && product.images[0]
+              ? getImageUrl(product.images[0])
+              : null,
+          descriptionPoints: formatDescription(product.description || ""),
+          // ── NEW fields for the print template ──
+          weight: weightNum,
+          courierFee: courierNum,
+          weeklyPayment: weeklyPayment,
+          docFee: docFee,
+        };
+      });
 
       const response = await fetch(catalogTemplate);
       if (!response.ok) {
@@ -487,6 +528,162 @@ const PrintProducts = () => {
                             <span className="print-category inline-block text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded mb-1">
                               {product.category}
                             </span>
+
+                            {/* ── Specs tiles: Weight / Courier / Weekly / Doc Fee ── */}
+                            {(() => {
+                              const weightNum =
+                                typeof product.product_weight === "string"
+                                  ? parseFloat(product.product_weight)
+                                  : (product.product_weight ?? 0);
+                              const courierNum =
+                                typeof product.courier_fee === "string"
+                                  ? parseFloat(product.courier_fee)
+                                  : (product.courier_fee ?? 0);
+                              const weekPayment = getWeekPayment(price);
+                              const docFee = getDocFee(price);
+
+                              return (
+                                <div className="print-specs grid grid-cols-2 gap-1.5 mt-1.5 mb-1.5">
+                                  {/* Product Weight */}
+                                  <div className="spec-tile flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50/60 px-2 py-1.5">
+                                    <div className="spec-icon w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                      <svg
+                                        className="w-3.5 h-3.5 text-blue-600"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <rect
+                                          x="3"
+                                          y="7"
+                                          width="18"
+                                          height="13"
+                                          rx="2"
+                                        />
+                                        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        <path d="M12 11v4" />
+                                        <path d="M10 13h4" />
+                                      </svg>
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="spec-label text-[8.5px] text-gray-500 leading-none">
+                                        Product Weight
+                                      </p>
+                                      <p className="spec-value text-[10.5px] font-bold text-gray-900 leading-tight mt-0.5">
+                                        {weightNum
+                                          ? `${weightNum.toFixed(2)} kg`
+                                          : "—"}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Courier Fee */}
+                                  <div className="spec-tile flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/60 px-2 py-1.5">
+                                    <div className="spec-icon w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                      <svg
+                                        className="w-3.5 h-3.5 text-amber-600"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <rect
+                                          x="1"
+                                          y="3"
+                                          width="15"
+                                          height="13"
+                                          rx="2"
+                                        />
+                                        <path d="M16 8h4l3 5v3h-7z" />
+                                        <circle cx="5.5" cy="18.5" r="2.5" />
+                                        <circle cx="18.5" cy="18.5" r="2.5" />
+                                      </svg>
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="spec-label text-[8.5px] text-gray-500 leading-none">
+                                        Courier Fee
+                                      </p>
+                                      <p className="spec-value text-[10.5px] font-bold text-gray-900 leading-tight mt-0.5">
+                                        Rs. {courierNum.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Weekly Payment */}
+                                  <div className="spec-tile flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50/60 px-2 py-1.5">
+                                    <div className="spec-icon w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                      <svg
+                                        className="w-3.5 h-3.5 text-green-600"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <rect
+                                          x="3"
+                                          y="4"
+                                          width="18"
+                                          height="18"
+                                          rx="2"
+                                        />
+                                        <path d="M16 2v4" />
+                                        <path d="M8 2v4" />
+                                        <path d="M3 10h18" />
+                                      </svg>
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="spec-label text-[8.5px] text-gray-500 leading-none">
+                                        Weekly Payment{" "}
+                                        <span className="text-gray-400">
+                                          (13 W)
+                                        </span>
+                                      </p>
+                                      <p className="spec-value text-[10.5px] font-bold text-gray-900 leading-tight mt-0.5">
+                                        Rs. {weekPayment.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  {/* Document Fee */}
+                                  <div className="spec-tile flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50/60 px-2 py-1.5">
+                                    <div className="spec-icon w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                      <svg
+                                        className="w-3.5 h-3.5 text-purple-600"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z" />
+                                        <circle
+                                          cx="7"
+                                          cy="7"
+                                          r="1.5"
+                                          fill="currentColor"
+                                        />
+                                      </svg>
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="spec-label text-[8.5px] text-gray-500 leading-none">
+                                        Document Fee
+                                      </p>
+                                      <p className="spec-value text-[10.5px] font-bold text-gray-900 leading-tight mt-0.5">
+                                        Rs. {docFee.toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })()}
 
                             {/* Description as bullet points */}
                             {descriptionPoints.length > 0 && (
