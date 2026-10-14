@@ -34,7 +34,7 @@ interface PaymentRow {
 interface PaymentsTableProps {
   type?: "single" | "multiple";
   data: PaymentRow[];
-  onPaymentChange: (index: number, value: number) => void;
+  onPaymentChange: (loanCode: string, value: number) => void;
 }
 
 export const PaymentsTable = ({
@@ -225,7 +225,7 @@ export const PaymentsTable = ({
                         value={row.payment || ""}
                         onChange={(e) =>
                           onPaymentChange(
-                            index,
+                            row.loanCode,
                             parseFloat(e.target.value) || 0,
                           )
                         }
