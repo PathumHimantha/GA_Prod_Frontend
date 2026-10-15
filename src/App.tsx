@@ -27,6 +27,8 @@ import RequestedProducts from "./pages/products/RequestedProducts";
 import ProductPurchases from "./pages/Reports/DailyProductPurchases";
 import CenterPayments from "./pages/Reports/CenterPayments";
 import ProductTracking from "./pages/ProductDashbaord/ProductTracking";
+import ProductReports from "@/components/ProductReports";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -55,6 +57,7 @@ const App = () => (
               <Route path="print-products" element={<PrintProducts />} />
               <Route path="daily-report" element={<ProductPurchases />} />
               <Route path="center-payments" element={<CenterPayments />} />
+              <Route path="product-reports" element={<ProductReports />} />
               <Route
                 path="requested-products"
                 element={<RequestedProducts />}
