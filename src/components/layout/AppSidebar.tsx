@@ -120,6 +120,11 @@ const menuGroups: MenuGroup[] = [
         icon: ClipboardCheck,
       },
       {
+        label: "Product Reports",
+        path: "/dashboard/product-reports",
+        icon: ClipboardCheck,
+      },
+      {
         label: "Center Payments",
         path: "/dashboard/center-payments",
         icon: ClipboardCheck,

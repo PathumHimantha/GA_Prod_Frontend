@@ -5,7 +5,7 @@ import OverviewStats from "./OverviewStats";
 import CustomerProfile from "@/pages/CustomerProfile";
 import ExecutiveOverview from "./ExecutiveOverview";
 import RouteOverview from "../components/RouteOverview";
-
+import ProductStats from "@/components/ProductStats";
 const Dashboard = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -20,6 +20,8 @@ const Dashboard = () => {
         </h1>
       </div>
 
+      <ProductStats />
+      {/* <ProductReports /> */}
       {/* <CustomerProfile initialSearch={searchTerm} />
 
       <FloatForm />
