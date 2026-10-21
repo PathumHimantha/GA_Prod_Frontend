@@ -152,7 +152,7 @@ const menuGroups: SectionedMenuGroup[] = [
     section: "crew",
     label: "Staff Store",
     icon: Store,
-    // roles: ["admin", "staff", "crew", "executive"],
+    roles: ["admin"],
     items: [
       {
         label: "Browse Products",
