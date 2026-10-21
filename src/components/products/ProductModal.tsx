@@ -12,6 +12,7 @@ type Product = {
   category: string;
   name: string;
   description: string;
+  product_category?: string;
   price: number;
   retail_price: number;
   discount: number;
@@ -41,6 +42,7 @@ const ProductModal: React.FC<Props> = ({
     category: "",
     name: "",
     description: "",
+    product_category: "Customers",
     price: 0,
     retail_price: 0,
     discount: 0,
@@ -60,6 +62,7 @@ const ProductModal: React.FC<Props> = ({
       setForm({
         product_id: product.product_id || "",
         category: product.category || "",
+        product_category: product.product_category || "Customers", // <-- NEW
         name: product.name || "",
         description: product.description || "",
         price: product.price || 0,
@@ -75,6 +78,7 @@ const ProductModal: React.FC<Props> = ({
       setForm({
         product_id: "",
         category: "",
+        product_category: "Customers", // <-- NEW
         name: "",
         description: "",
         price: 0,
@@ -188,6 +192,7 @@ const ProductModal: React.FC<Props> = ({
         category: form.category,
         name: form.name,
         description: form.description || "",
+        product_category: form.product_category || "Customers",
         price: form.price,
         retail_price: form.retail_price,
         discount: form.discount || 0,
@@ -297,7 +302,21 @@ const ProductModal: React.FC<Props> = ({
               disabled={loading}
             />
           </div>
-
+          {/* Product Category (Customer / Staff) */}
+          <div>
+            <Label>
+              Product Category <span className="text-destructive">*</span>
+            </Label>
+            <select
+              value={form.product_category || "Customers"}
+              onChange={(e) => handleChange("product_category", e.target.value)}
+              disabled={loading}
+              className="w-full mt-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="Customers">Customer</option>
+              <option value="Staff">Staff</option>
+            </select>
+          </div>
           {/* Description */}
           <div className="md:col-span-2">
             <Label>Description</Label>
