@@ -15,22 +15,33 @@ import {
   DollarSign,
   ClipboardCheck,
   TrendingUp,
+  Store,
+  PackageSearch,
+  ClipboardList,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarMenuGroup, type MenuGroup } from "./SidebarMenu";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
-const menuGroups: MenuGroup[] = [
+/* ---------------- MENU CONFIG ---------------- */
+
+type MenuSection = "customer" | "crew";
+
+interface SectionedMenuGroup extends MenuGroup {
+  section: MenuSection;
+  roles?: string[];
+}
+
+const menuGroups: SectionedMenuGroup[] = [
+  // ================= CUSTOMER SECTION =================
   {
+    section: "customer",
     label: "Products Dashboard",
     icon: LayoutDashboard,
     items: [
-      {
-        label: "Products",
-        path: "/dashboard/products",
-        icon: Package,
-      },
+      { label: "Products", path: "/dashboard/products", icon: Package },
       {
         label: "Product Cart",
         path: "/dashboard/product-cart",
@@ -44,6 +55,7 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    section: "customer",
     label: "Products Payments",
     icon: CreditCard,
     items: [
@@ -60,6 +72,7 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    section: "customer",
     label: "Documents Print",
     icon: Printer,
     items: [
@@ -76,6 +89,7 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    section: "customer",
     label: "Products",
     icon: Package,
     items: [
@@ -106,6 +120,7 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    section: "customer",
     label: "Products Reports",
     icon: FileSpreadsheet,
     items: [
@@ -131,12 +146,68 @@ const menuGroups: MenuGroup[] = [
       },
     ],
   },
+
+  // ================= CREW / STAFF SECTION =================
+  {
+    section: "crew",
+    label: "Staff Store",
+    icon: Store,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Browse Products",
+        path: "/dashboard/staff-store",
+        icon: PackageSearch,
+      },
+      {
+        label: "Buy for Myself",
+        path: "/dashboard/buy",
+        icon: ShoppingCart,
+      },
+      {
+        label: "My Orders",
+        path: "/dashboard/my-orders",
+        icon: ClipboardList,
+      },
+    ],
+  },
+  {
+    section: "crew",
+    label: "Team",
+    icon: Users,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Staff Purchases",
+        path: "/dashboard/staff-purchases",
+        icon: ClipboardCheck,
+      },
+      {
+        label: "Staff Requests",
+        path: "/dashboard/staff-requests",
+        icon: ClipboardCheck,
+      },
+      {
+        label: "Manage Orders",
+        path: "/dashboard/manage-orders",
+        icon: ClipboardCheck,
+      },
+    ],
+  },
 ];
+
+/* ---------------- COMPONENT ---------------- */
 
 interface AppSidebarProps {
   collapsed: boolean;
   onClose?: () => void;
 }
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted">
+    {children}
+  </p>
+);
 
 const AppSidebar = ({ collapsed, onClose }: AppSidebarProps) => {
   const { user, logout } = useAuth();
@@ -152,6 +223,23 @@ const AppSidebar = ({ collapsed, onClose }: AppSidebarProps) => {
     logout();
     navigate("/");
   };
+
+  /* ---- role resolution: use whichever field the auth context actually fills ---- */
+  const rawRole =
+    (user as any)?.role ??
+    (user as any)?.status ??
+    (user as any)?.userType ??
+    "";
+
+  const currentRole = String(rawRole).toLowerCase();
+
+  const visibleGroups = menuGroups.filter((g) => {
+    if (!g.roles) return true;
+    return g.roles.map((r) => r.toLowerCase()).includes(currentRole);
+  });
+
+  const customerGroups = visibleGroups.filter((g) => g.section === "customer");
+  const crewGroups = visibleGroups.filter((g) => g.section === "crew");
 
   return (
     <aside
@@ -180,15 +268,44 @@ const AppSidebar = ({ collapsed, onClose }: AppSidebarProps) => {
 
       {/* Menu */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hidden">
-        {menuGroups.map((group, i) => (
-          <SidebarMenuGroup
-            key={`${group.label}-${i}`}
-            group={group}
-            collapsed={collapsed}
-            activePath={location.pathname}
-            onNavigate={handleNavigate}
-          />
-        ))}
+        {/* CUSTOMER SECTION */}
+        {customerGroups.length > 0 && (
+          <>
+            {!collapsed && <SectionLabel>Customer</SectionLabel>}
+            {customerGroups.map((group, i) => (
+              <SidebarMenuGroup
+                key={`c-${group.label}-${i}`}
+                group={group}
+                collapsed={collapsed}
+                activePath={location.pathname}
+                onNavigate={handleNavigate}
+              />
+            ))}
+          </>
+        )}
+
+        {/* DIVIDER */}
+        {customerGroups.length > 0 && crewGroups.length > 0 && (
+          <div className="my-3 border-t border-sidebar-border" />
+        )}
+
+        {/* CREW / STAFF SECTION */}
+        {crewGroups.length > 0 && (
+          <>
+            {!collapsed && (
+              <SectionLabel>Company Crew &amp; Staff</SectionLabel>
+            )}
+            {crewGroups.map((group, i) => (
+              <SidebarMenuGroup
+                key={`s-${group.label}-${i}`}
+                group={group}
+                collapsed={collapsed}
+                activePath={location.pathname}
+                onNavigate={handleNavigate}
+              />
+            ))}
+          </>
+        )}
       </nav>
 
       {/* User / Logout */}

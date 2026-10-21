@@ -217,7 +217,9 @@ const SingleProduct = () => {
   // ✅ Document fee: Rs. 1000 if product price >= 15000, else Rs. 500
   const calculateDocumentFee = (totalAmount: number | string) => {
     const amount = parseFloat(String(totalAmount)) || 0;
-    return amount >= 15000 ? 1000 : 500;
+    if (amount > 30000) return 1500;
+    if (amount >= 15000) return 1000;
+    return 500;
   };
   // Loading skeleton
   if (loading) {

@@ -28,6 +28,12 @@ import ProductPurchases from "./pages/Reports/DailyProductPurchases";
 import CenterPayments from "./pages/Reports/CenterPayments";
 import ProductTracking from "./pages/ProductDashbaord/ProductTracking";
 import ProductReports from "@/components/ProductReports";
+import StaffProductDashboard from "./pages/Staff/StaffProductDashboard";
+import StaffSingleProduct from "./pages/Staff/StaffSingleProduct";
+import BuyForMySelf from "./pages/Staff/BuyForMyself";
+import StaffRequests from "./pages/Staff/StaffRequestOrder";
+import MyOrders from "./pages/Staff/MyOrders";
+import ManageStaffOrders from "./pages/Staff/ManageOrders";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +68,15 @@ const App = () => (
                 path="requested-products"
                 element={<RequestedProducts />}
               />
+              <Route path="staff-store" element={<StaffProductDashboard />} />
+              <Route path="buy" element={<BuyForMySelf />} />
+              <Route
+                path="staff-product/:id"
+                element={<StaffSingleProduct />}
+              />
+              <Route path="staff-requests" element={<StaffRequests />} />
+              <Route path="my-orders" element={<MyOrders />} />
+              <Route path="manage-orders" element={<ManageStaffOrders />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
             <Route path="*" element={<NotFound />} />

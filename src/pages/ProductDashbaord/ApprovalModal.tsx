@@ -478,14 +478,15 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <div>
                 <Label className="text-xs text-gray-500">Period (Weeks)</Label>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={periodWeeks}
-                  onChange={(e) =>
-                    setPeriodWeeks(Math.max(1, parseInt(e.target.value) || 13))
-                  }
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    setPeriodWeeks(val ? parseInt(val, 10) : 13);
+                  }}
                   className="w-24 h-9"
-                  min="1"
-                  max="52"
                   disabled={approving}
                 />
               </div>
