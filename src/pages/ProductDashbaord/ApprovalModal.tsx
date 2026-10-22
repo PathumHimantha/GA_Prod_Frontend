@@ -22,7 +22,7 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
-
+import { compressImage } from "@/lib/compressImage";
 type CartItem = {
   id: number;
   product_id: string;
@@ -145,37 +145,50 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     }
     return null;
   };
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      const validTypes = [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/jpg",
-      ];
-      if (!validTypes.includes(file.type)) {
-        setAgreementError("Please upload a PDF or image file");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setAgreementError("File size must be less than 5MB");
-        return;
-      }
-      setAgreementError(null);
-      setPurchaseAgreementFront(file);
-    }
-  };
-  const handleBackFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (!file) return;
+  const processFile = async (
+    file: File,
+    setFile: (f: File | null) => void,
+    setErr: (m: string | null) => void,
+  ) => {
     const err = validateFile(file);
     if (err) {
-      setAgreementBackError(err);
+      setErr(err);
       return;
     }
-    setAgreementBackError(null);
-    setPurchaseAgreementBack(file);
+    setErr(null);
+
+    // PDFs can't be image-compressed, keep as is
+    if (file.type === "application/pdf") {
+      setFile(file);
+      return;
+    }
+
+    try {
+      const compressed = await compressImage(file, {
+        maxSizeMB: 0.4,
+        maxWidthOrHeight: 1600,
+      });
+      setFile(compressed);
+    } catch (e) {
+      console.error("Compression failed", e);
+      setErr("Could not process image. Try another photo.");
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file)
+      await processFile(file, setPurchaseAgreementFront, setAgreementError);
+    e.target.value = ""; // allows re-selecting the same file
+  };
+
+  const handleBackFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file)
+      await processFile(file, setPurchaseAgreementBack, setAgreementBackError);
+    e.target.value = "";
   };
   const handleSubmit = () => {
     try {

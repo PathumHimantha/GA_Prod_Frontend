@@ -852,35 +852,17 @@ const ProductCart = () => {
 
             // ✅ COMPRESS IMAGES BEFORE APPENDING (fixes iOS memory issues)
             if (purchaseAgreementFront) {
-              const compressedFront = await compressImage(
-                purchaseAgreementFront,
-                {
-                  maxSizeMB: 0.9,
-                  maxWidthOrHeight: 1600,
-                },
-              );
-              // Ensure safe ASCII filename for iOS
-              const safeName = `front_${Date.now()}.jpg`;
               formData.append(
                 "purchase_agreement_front",
-                compressedFront,
-                safeName,
+                purchaseAgreementFront,
+                `front_${Date.now()}.${purchaseAgreementFront.type === "application/pdf" ? "pdf" : "jpg"}`,
               );
             }
-
             if (purchaseAgreementBack) {
-              const compressedBack = await compressImage(
-                purchaseAgreementBack,
-                {
-                  maxSizeMB: 0.9,
-                  maxWidthOrHeight: 1600,
-                },
-              );
-              const safeName = `back_${Date.now()}.jpg`;
               formData.append(
                 "purchase_agreement_back",
-                compressedBack,
-                safeName,
+                purchaseAgreementBack,
+                `back_${Date.now()}.${purchaseAgreementBack.type === "application/pdf" ? "pdf" : "jpg"}`,
               );
             }
             const response = await fetch(`${API_BASE_URL}/loans/submit`, {
