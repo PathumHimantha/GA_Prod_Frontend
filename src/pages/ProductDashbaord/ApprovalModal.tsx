@@ -178,54 +178,50 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     setPurchaseAgreementBack(file);
   };
   const handleSubmit = () => {
-    if (!purchaseAgreementFront) {
-      setAgreementError("Purchase Agreement is required");
-      return;
-    }
-    if (!customerPhone.trim()) {
-      setAgreementError("Phone 1 is required");
-      return;
-    }
-    if (!customerPhone2.trim()) {
-      setAgreementError("Phone 2 is required");
-      return;
-    }
-    if (!selectedGroup) return;
+    try {
+      if (!purchaseAgreementFront) {
+        setAgreementError("Purchase Agreement is required");
+        return;
+      }
+      if (!customerPhone.trim()) {
+        setAgreementError("Phone 1 is required");
+        return;
+      }
+      if (!customerPhone2.trim()) {
+        setAgreementError("Phone 2 is required");
+        return;
+      }
+      if (!selectedGroup) return;
 
-    // ✅ Use the current state values for address and phone
-    const firstItem = selectedGroup.items[0];
-    const weight = parseFloat(String(firstItem?.product_weight || 0));
-    const courierCharge = calculateCourierCharge(weight);
-    const customer = selectedGroup.customer_details?.customer;
-    const productIds = selectedGroup.items.map((item) => item.id);
-    const totalAmount = selectedGroup.total_amount;
-    const productWeight = parseFloat((firstItem as any)?.product_weight || 0);
+      // ✅ ADD ALERT TO SEE DATA
+      alert("Passing data to onApprove...");
 
-    console.log("Submitting with:", {
-      customerAddress,
-      customerPhone,
-      periodWeeks,
-      courierCharge,
-      productIds,
-      totalAmount,
-      productWeight,
-    });
+      const firstItem = selectedGroup.items[0];
+      const weight = parseFloat(String(firstItem?.product_weight || 0));
+      const courierCharge = calculateCourierCharge(weight);
+      const customer = selectedGroup.customer_details?.customer;
+      const productIds = selectedGroup.items.map((item) => item.id);
+      const totalAmount = selectedGroup.total_amount;
+      const productWeight = parseFloat((firstItem as any)?.product_weight || 0);
 
-    onApprove({
-      customerAddress: customerAddress || customer?.address || "",
-      customerPhone: customerPhone || customer?.phone1 || "",
-      customerPhone2: customerPhone2 || customer?.phone2 || "",
-      periodWeeks,
-      courierCharge,
-      purchaseAgreementFront,
-      purchaseAgreementBack,
-      productIds,
-      firstItem,
-      totalAmount,
-      customer,
-      userId,
-      productWeight,
-    });
+      onApprove({
+        customerAddress: customerAddress || customer?.address || "",
+        customerPhone: customerPhone || customer?.phone1 || "",
+        customerPhone2: customerPhone2 || customer?.phone2 || "",
+        periodWeeks,
+        courierCharge,
+        purchaseAgreementFront,
+        purchaseAgreementBack,
+        productIds,
+        firstItem,
+        totalAmount,
+        customer,
+        userId,
+        productWeight,
+      });
+    } catch (err: any) {
+      alert("ERROR IN MODAL: " + err.message); // ✅ SHOW ERROR ON PHONE
+    }
   };
 
   if (!isOpen || !selectedGroup) return null;
@@ -660,6 +656,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               Cancel
             </Button>
             <Button
+              type="button"
               onClick={handleSubmit}
               className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 text-white"
               disabled={approving || !purchaseAgreementFront}
