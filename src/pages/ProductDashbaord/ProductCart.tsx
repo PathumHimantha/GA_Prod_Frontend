@@ -37,6 +37,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import ApprovalModal from "./ApprovalModal";
+import { compressImage } from "@/lib/compressImage";
 
 type CartItem = {
   id: number;
@@ -849,14 +850,38 @@ const ProductCart = () => {
             formData.append("product_weight", String(productWeight));
             formData.append("courier_charge", String(courierCharge));
 
+            // ✅ COMPRESS IMAGES BEFORE APPENDING (fixes iOS memory issues)
             if (purchaseAgreementFront) {
+              const compressedFront = await compressImage(
+                purchaseAgreementFront,
+                {
+                  maxSizeMB: 0.9,
+                  maxWidthOrHeight: 1600,
+                },
+              );
+              // Ensure safe ASCII filename for iOS
+              const safeName = `front_${Date.now()}.jpg`;
               formData.append(
                 "purchase_agreement_front",
-                purchaseAgreementFront,
+                compressedFront,
+                safeName,
               );
             }
+
             if (purchaseAgreementBack) {
-              formData.append("purchase_agreement_back", purchaseAgreementBack);
+              const compressedBack = await compressImage(
+                purchaseAgreementBack,
+                {
+                  maxSizeMB: 0.9,
+                  maxWidthOrHeight: 1600,
+                },
+              );
+              const safeName = `back_${Date.now()}.jpg`;
+              formData.append(
+                "purchase_agreement_back",
+                compressedBack,
+                safeName,
+              );
             }
             const response = await fetch(`${API_BASE_URL}/loans/submit`, {
               method: "POST",
