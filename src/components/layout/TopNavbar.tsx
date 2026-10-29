@@ -73,7 +73,7 @@ const TopNavbar = ({ onToggleSidebar }: TopNavbarProps) => {
       <div className="flex-1" />
 
       {/* ── Notification Bell (self-contained) ── */}
-      {/* <NotificationBell /> */}
+      <NotificationBell />
 
       {/* ── Profile Popover ── */}
       <Popover>
