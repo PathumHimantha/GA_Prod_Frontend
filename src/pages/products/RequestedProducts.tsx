@@ -21,10 +21,14 @@ import {
   Users,
   CheckCircle2,
   X,
+  FileSpreadsheet,
+  Loader2,
 } from "lucide-react";
 import { API_BASE_URL } from "@/apiConfig";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+
+import * as XLSX from "xlsx"; // ← add this
 
 type ProductRequest = {
   id: number;
@@ -64,9 +68,94 @@ const RequestedProducts = () => {
   const [updating, setUpdating] = useState<{ [key: number]: boolean }>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const [exporting, setExporting] = useState(false);
   const { hasRole, user } = useAuth();
+  const exportToExcel = async () => {
+    setExporting(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
 
+    try {
+      // ── 1. Fetch the full set (all pages) so we don't just export 10 rows ──
+      const params = new URLSearchParams();
+      params.append("page", "1");
+      params.append("limit", "10000"); // ← large limit = "everything"
+      if (searchTerm) params.append("search", searchTerm);
+      if (statusFilter && statusFilter !== "all") {
+        params.append("status", statusFilter);
+      }
+
+      const res = await fetch(
+        `${API_BASE_URL}/products/requests?${params.toString()}`,
+      );
+      if (!res.ok) throw new Error(`Failed to fetch requests (${res.status})`);
+      const json = await res.json();
+      if (!json.success)
+        throw new Error(json.error || "Failed to fetch requests");
+
+      // ── 2. Filter to pending + approved (drop fulfilled/rejected) ──
+      const rows: ProductRequest[] = (json.data || []).filter(
+        (r: ProductRequest) =>
+          r.status === "pending" || r.status === "approved",
+      );
+
+      if (rows.length === 0) {
+        setErrorMessage("No pending or approved requests to export.");
+        return;
+      }
+
+      // ── 3. Build the sheet data (label-mapped columns) ──
+      const sheetData = rows.map((r) => ({
+        "#": r.id,
+        "Product Code": r.product_code,
+        "Product Name": r.product_name,
+        "Price (LKR)": Number(r.price || 0),
+        Quantity: Number(r.quantity || 0),
+        "Requested By": r.requested_by,
+        "Requested By ID": r.requested_by_id,
+        "Customer NIC": (r as any).customer_nic || "",
+        Status: r.status.charAt(0).toUpperCase() + r.status.slice(1),
+        Notes: r.notes || "",
+        "Requested At": r.created_at
+          ? new Date(r.created_at).toLocaleString("en-GB")
+          : "",
+      }));
+
+      // ── 4. Sheet + workbook ──
+      const ws = XLSX.utils.json_to_sheet(sheetData);
+
+      // Column widths (character count)
+      ws["!cols"] = [
+        { wch: 6 }, // #
+        { wch: 16 }, // Product Code
+        { wch: 32 }, // Product Name
+        { wch: 12 }, // Price
+        { wch: 10 }, // Quantity
+        { wch: 24 }, // Requested By
+        { wch: 14 }, // Requested By ID
+        { wch: 20 }, // Customer NIC
+        { wch: 12 }, // Status
+        { wch: 40 }, // Notes
+        { wch: 20 }, // Requested At
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Requests");
+
+      // ── 5. Trigger download ──
+      const stamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `product-requests-${stamp}.xlsx`);
+
+      setSuccessMessage(`Exported ${rows.length} request(s) to Excel.`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error("Export error:", err);
+      setErrorMessage(err.message || "Failed to export");
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
+      setExporting(false);
+    }
+  };
   // Check if user has admin access
   const isAdmin = hasRole("admin");
 
@@ -410,6 +499,18 @@ const RequestedProducts = () => {
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
+          </Button>
+          <Button
+            onClick={exportToExcel}
+            disabled={exporting}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            {exporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="w-4 h-4" />
+            )}
+            {exporting ? "Exporting…" : "Export Excel"}
           </Button>
         </div>
       </div>

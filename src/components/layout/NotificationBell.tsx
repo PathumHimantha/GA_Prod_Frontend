@@ -23,19 +23,26 @@ import {
 } from "lucide-react";
 import { API_BASE_URL } from "@/apiConfig";
 import { useNavigate } from "react-router-dom";
-// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface Notification {
   id: number;
   title: string;
   message: string;
   type: string;
-  target_type: string;
+  target_role: string; // backend field
   created_at: string;
-  is_read: number;
-  link?: string;
+  is_read: boolean | number; // backend returns boolean from LEFT JOIN
+  payload?: any;
+  entity_type?: string;
+  entity_code?: string;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const normalizeNotification = (n: any): Notification => ({
+  ...n,
+  id: Number(n.id),
+  entity_id: n.entity_id != null ? Number(n.entity_id) : null,
+  is_read: Number(n.is_read) === 1, // "0"/"1"/0/1  →  false/true
+});
 const timeAgo = (dateStr: string) => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -51,7 +58,6 @@ const timeAgo = (dateStr: string) => {
   });
 };
 
-// ── Icon + color per notification type ───────────────────────────────────────
 const typeConfig: Record<
   string,
   { icon: any; dot: string; bg: string; iconColor: string }
@@ -107,7 +113,6 @@ const typeConfig: Record<
 };
 const getTypeConfig = (type: string) => typeConfig[type] || typeConfig["info"];
 
-// ── NotificationBell ──────────────────────────────────────────────────────────
 const NotificationBell = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -117,21 +122,40 @@ const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const navigate = useNavigate();
+
+  // ── Auth header — replace with your actual token source ────────────────
+  const authHeaders = (): Record<string, string> => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return {};
+      const u = JSON.parse(raw);
+      if (!u?.id) return {};
+      return {
+        "x-user-id": String(u.id),
+        "x-user-role": String(u.status || ""),
+        "x-user-branch": String(u.bname || ""),
+      };
+    } catch {
+      return {};
+    }
+  };
   const fetchNotifications = useCallback(
     async (silent = false) => {
       if (!user?.id) return;
       if (!silent) setLoading(true);
       try {
-        const params = new URLSearchParams({
-          userid: String(user.id),
-          role: user.status || "",
-          bname: user.bname || "",
-        });
-        const res = await fetch(`${API_BASE_URL}/api/notifications?${params}`);
-        const data = await res.json();
-        if (res.ok) {
-          setNotifications(data.notifications || []);
-          setUnreadCount(data.unread_count || 0);
+        const params = new URLSearchParams({ limit: "50", offset: "0" });
+        const res = await fetch(
+          `${API_BASE_URL}/notifications?${params}`,
+          { headers: authHeaders(), credentials: "include" }, // ← send token
+        );
+        const json = await res.json();
+        if (res.ok && json.success) {
+          const rows = (json.data || []).map(normalizeNotification);
+          setNotifications(rows);
+          setUnreadCount(
+            (json.data || []).filter((n: Notification) => !n.is_read).length,
+          );
         }
       } catch (_) {
       } finally {
@@ -140,9 +164,21 @@ const NotificationBell = () => {
     },
     [user],
   );
-
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
+        headers: authHeaders(),
+        credentials: "include",
+      });
+      const json = await res.json();
+      if (res.ok && json.success) setUnreadCount(json.count ?? 0);
+    } catch (_) {}
+  }, [user]);
   useEffect(() => {
+    console.log("User data", localStorage.user);
     fetchNotifications();
+    fetchUnreadCount();
     pollRef.current = setInterval(() => fetchNotifications(true), 60000);
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -150,15 +186,16 @@ const NotificationBell = () => {
   }, [fetchNotifications]);
 
   const markRead = async (id: number) => {
+    // optimistic
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: 1 } : n)),
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
     setUnreadCount((p) => Math.max(0, p - 1));
     try {
-      await fetch(`${API_BASE_URL}/api/notifications/mark-read`, {
+      await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notification_id: id, user_id: user?.id }),
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        credentials: "include",
       });
     } catch (_) {}
   };
@@ -166,16 +203,12 @@ const NotificationBell = () => {
   const markAllRead = async () => {
     setMarkingAll(true);
     try {
-      await fetch(`${API_BASE_URL}/api/notifications/mark-all-read`, {
+      await fetch(`${API_BASE_URL}/notifications/read-all`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: user?.id,
-          role: user?.status,
-          bname: user?.bname,
-        }),
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        credentials: "include",
       });
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (_) {
     } finally {
@@ -187,7 +220,6 @@ const NotificationBell = () => {
     setOpen(isOpen);
     if (isOpen) fetchNotifications();
   };
-
   // Group by date label
   const grouped = notifications.reduce(
     (acc, n) => {
