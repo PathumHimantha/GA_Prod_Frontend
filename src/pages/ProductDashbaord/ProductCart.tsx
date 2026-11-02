@@ -564,7 +564,7 @@ const ProductCart = () => {
                                 <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                                   {customer?.image ? (
                                     <img
-                                      src={`https://application.goldenasia.lk/api/${customer.image}`}
+                                      src={`https://application.goldenasia.lk/api/api/customers/uploads/customer_images/${customer.image}`}
                                       alt={customer?.name || customer?.cname}
                                       className="w-full h-full rounded-full object-cover"
                                       onError={(e) => {
@@ -581,6 +581,9 @@ const ProductCart = () => {
                                   <h3 className="font-semibold text-gray-900">
                                     {customer?.cname || group.customer_nic}
                                   </h3>
+                                  <h4 className="text-sm text-gray-500">
+                                    Ex: {customer?.name}
+                                  </h4>
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     <Badge
                                       variant="outline"
@@ -604,6 +607,14 @@ const ProductCart = () => {
                                         className="bg-gray-50"
                                       >
                                         Center: {customer.center}
+                                      </Badge>
+                                    )}
+                                    {customer?.bname && (
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-gray-50"
+                                      >
+                                        Branch: {customer.bname}
                                       </Badge>
                                     )}
                                   </div>
@@ -714,7 +725,7 @@ const ProductCart = () => {
                                         <div className="flex flex-wrap items-center gap-2 mt-1">
                                           <Badge
                                             variant="secondary"
-                                            className="bg-gray-200 text-xs"
+                                            className=" text-xs"
                                           >
                                             {item.category}
                                           </Badge>
