@@ -43,7 +43,7 @@ const BuyRequestsProd: React.FC<Props> = ({
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [periodMonths, setPeriodMonths] = useState<3 | 6>(6);
   // Guarantor options from /active_users
   const [guarantorOptions, setGuarantorOptions] = useState<SelectOption[]>([]);
   const [guarantorsLoading, setGuarantorsLoading] = useState(false);
@@ -96,6 +96,7 @@ const BuyRequestsProd: React.FC<Props> = ({
       setGuarantor1("");
       setGuarantor2("");
       setNotes("");
+      setPeriodMonths(6);
       setError(null);
       setSubmitting(false);
     }
@@ -133,9 +134,12 @@ const BuyRequestsProd: React.FC<Props> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          bname: user.bname,
+          role: user.status,
           product_id: product.id,
           staff_user_id: user.id,
           staff_name: user.name,
+          period_months: periodMonths,
           quantity,
           guarantor_1: guarantor1 || null,
           guarantor_2: guarantor2 || null,
@@ -269,7 +273,24 @@ const BuyRequestsProd: React.FC<Props> = ({
               className="mt-1"
             />
           </div>
-
+          {/* Payment Period */}
+          <div className="mb-4">
+            <Label className="text-sm font-medium text-gray-700">
+              Payment Period <span className="text-red-500">*</span>
+            </Label>
+            <div className="mt-1">
+              <SearchableSelect
+                options={[
+                  { label: "3 Months", value: "3" },
+                  { label: "6 Months", value: "6" },
+                ]}
+                value={String(periodMonths)}
+                onChange={(v) => setPeriodMonths(Number(v) === 3 ? 3 : 6)}
+                placeholder="Select period"
+                disabled={submitting}
+              />
+            </div>
+          </div>
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2 text-sm text-red-700">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />

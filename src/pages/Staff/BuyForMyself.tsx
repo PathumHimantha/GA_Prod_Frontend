@@ -55,6 +55,10 @@ type StaffCartItem = {
   category?: string;
   product_weight?: string | number;
   courier_fee?: string | number;
+  period_months?: number; // optional, default to 6
+  approved1?: boolean;
+  approved2?: boolean;
+  rejected?: boolean;
 };
 
 type StaffCartResponse = {
@@ -74,7 +78,6 @@ type ExecutiveProfile = {
 
 /* -------------------------------- constants -------------------------------- */
 
-const PERIOD_MONTHS = 6;
 const DOCUMENT_FEE_TIERS = [
   { min: 30000.0001, fee: 1500 },
   { min: 15000, fee: 1000 },
@@ -124,6 +127,10 @@ const BuyForMyself = () => {
   const staffId = user?.id;
   const staffName = user?.name || "";
   const staffBname = (user as any)?.bname || "";
+  const level1Approved = items.length > 0 && items.every((i) => i.approved1);
+  const level2Approved = items.length > 0 && items.every((i) => i.approved2);
+  const anyRejected = items.some((i) => i.rejected);
+  const fullyApproved = level1Approved && level2Approved;
 
   /* ------------------------------- load cart -------------------------------- */
 
@@ -242,7 +249,7 @@ const BuyForMyself = () => {
   }, [items, guarantorOptions, guarantorOptionsLoading]);
 
   /* ------------------------------ derived ---------------------------------- */
-
+  const periodMonths = (items[0]?.period_months as number | undefined) ?? 6;
   const summary = useMemo(() => {
     const totalItems = items.reduce((s, i) => s + i.quantity, 0);
     const totalAmount = items.reduce(
@@ -259,7 +266,7 @@ const BuyForMyself = () => {
     }, 0);
     const documentFee = calculateDocumentFee(totalAmount);
     const fullLoan = totalAmount + courierCharge;
-    const monthPayment = fullLoan / PERIOD_MONTHS;
+    const monthPayment = fullLoan / periodMonths;
 
     return {
       totalItems,
@@ -269,11 +276,13 @@ const BuyForMyself = () => {
       documentFee,
       fullLoan,
       monthPayment,
+      period_months: periodMonths,
     };
-  }, [items]);
+  }, [items, periodMonths]);
 
   const canSubmit =
     items.length > 0 &&
+    fullyApproved &&
     !!nic.trim() &&
     !!address.trim() &&
     !!phone1.trim() &&
@@ -308,6 +317,10 @@ const BuyForMyself = () => {
 
   const handleSubmit = async () => {
     setFormError(null);
+    if (!fullyApproved) {
+      setFormError("This purchase has not been fully approved yet.");
+      return;
+    }
 
     if (!canSubmit) {
       setFormError(
@@ -348,7 +361,7 @@ const BuyForMyself = () => {
       formData.append("total_amount", String(summary.totalAmount));
       formData.append("courier_charge", String(summary.courierCharge));
       formData.append("document_fee", String(summary.documentFee));
-      formData.append("period_months", String(PERIOD_MONTHS));
+      formData.append("period_months", String(summary.period_months));
       formData.append("month_payment", String(summary.monthPayment));
       formData.append("full_loan", String(summary.fullLoan));
 
@@ -440,7 +453,7 @@ const BuyForMyself = () => {
             </h1>
             <p className="text-sm text-gray-500">
               Review your staff cart and submit a monthly product loan (
-              {PERIOD_MONTHS} months)
+              {summary.period_months} months)
             </p>
           </div>
           <Button
@@ -529,6 +542,44 @@ const BuyForMyself = () => {
         ) : (
           <>
             {/* Summary */}
+            {!fullyApproved && (
+              <div
+                className={`mb-6 p-4 rounded-xl border flex items-start gap-3 ${
+                  anyRejected
+                    ? "bg-red-50 border-red-200"
+                    : "bg-amber-50 border-amber-200"
+                }`}
+              >
+                {anyRejected ? (
+                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                )}
+                <div className="text-sm">
+                  <p
+                    className={`font-semibold ${
+                      anyRejected ? "text-red-800" : "text-amber-800"
+                    }`}
+                  >
+                    {anyRejected
+                      ? "Your request was rejected. You cannot submit this loan."
+                      : "Waiting for approval. You can submit once both levels approve."}
+                  </p>
+                  <ul className="mt-1 space-y-0.5">
+                    {!level1Approved && (
+                      <li className="text-amber-700">
+                        1st Level not approved yet
+                      </li>
+                    )}
+                    {!level2Approved && (
+                      <li className="text-amber-700">
+                        2nd Level not approved yet
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <SummaryCard
                 label="Items"
@@ -543,7 +594,7 @@ const BuyForMyself = () => {
                 tint="bg-green-50"
               />
               <SummaryCard
-                label={`Monthly (${PERIOD_MONTHS} mo)`}
+                label={`Monthly (${summary.period_months} mo)`}
                 value={`Rs. ${summary.monthPayment.toFixed(2)}`}
                 icon={<CalendarDays className="w-5 h-5 text-blue-600" />}
                 tint="bg-blue-50"
@@ -864,7 +915,7 @@ const BuyForMyself = () => {
                       bold
                     />
                     <Row
-                      label={`Monthly × ${PERIOD_MONTHS}`}
+                      label={`Monthly × ${summary.period_months} months`}
                       value={`Rs. ${summary.monthPayment.toFixed(2)}`}
                       bold
                       accent
