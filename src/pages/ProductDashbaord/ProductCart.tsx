@@ -25,6 +25,7 @@ import {
   Edit2,
   Save,
   Clock,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ type CartItem = {
   quantity: number;
   price: string;
   total_amount: string;
-  status: string;
+  status: "pending" | "approved" | "requested" | "cancelled" | string;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -117,6 +118,7 @@ const ProductCart = () => {
     totalAmount: 0,
     requestedItems: 0,
   });
+
   // ✅ Success/Error Message States
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [successDetails, setSuccessDetails] = useState<any>(null);
@@ -289,9 +291,14 @@ const ProductCart = () => {
       minute: "2-digit",
     });
   };
+
   // ✅ Helper: count of requested items in a group
   const getGroupRequestedCount = (group: CustomerGroup) =>
     group.items.filter((item) => item.status === "requested").length;
+
+  // ✅ Helper: check if group has any cancelled items
+  const hasCancelledItems = (group: CustomerGroup) =>
+    group.items.some((item) => item.status === "cancelled");
 
   // ✅ Helper: is any item in this group still pending fulfillment?
   const isGroupLocked = (group: CustomerGroup) =>
@@ -308,6 +315,7 @@ const ProductCart = () => {
     summary.requestedItems > 0
       ? summary.requestedItems
       : computedRequestedCount;
+
   // Loading skeleton
   if (loading) {
     return (
@@ -546,6 +554,9 @@ const ProductCart = () => {
               {groups.map((group) => {
                 const isExpanded = expandedGroups.has(group.customer_nic);
                 const customer = group.customer_details?.customer;
+                const cancelledCount = group.items.filter(
+                  (i) => i.status === "cancelled",
+                ).length;
 
                 return (
                   <Card
@@ -647,26 +658,49 @@ const ProductCart = () => {
                                   <Button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      if (isGroupLocked(group)) return;
+                                      if (
+                                        isGroupLocked(group) ||
+                                        hasCancelledItems(group)
+                                      )
+                                        return;
                                       openApprovalModal(group);
                                     }}
-                                    disabled={isGroupLocked(group)}
+                                    disabled={
+                                      isGroupLocked(group) ||
+                                      hasCancelledItems(group)
+                                    }
                                     title={
-                                      isGroupLocked(group)
-                                        ? "Some items are still pending fulfillment. Wait for the request to be fulfilled."
-                                        : ""
+                                      hasCancelledItems(group)
+                                        ? "This cart contains cancelled items. Please remove them before approving."
+                                        : isGroupLocked(group)
+                                          ? "Some items are still pending fulfillment. Wait for the request to be fulfilled."
+                                          : ""
                                     }
                                     className={`text-white ${
-                                      isGroupLocked(group)
-                                        ? "bg-gray-400 cursor-not-allowed opacity-60"
-                                        : ""
+                                      hasCancelledItems(group)
+                                        ? "bg-red-500 hover:bg-red-600 cursor-not-allowed opacity-90"
+                                        : isGroupLocked(group)
+                                          ? "bg-gray-400 cursor-not-allowed opacity-60"
+                                          : ""
                                     }`}
                                     size="sm"
                                   >
-                                    <CheckCircle className="w-4 h-4 mr-1" />
-                                    {isGroupLocked(group)
-                                      ? "Pending Fulfillment"
-                                      : "Approve"}
+                                    {hasCancelledItems(group) ? (
+                                      <>
+                                        <XCircle className="w-4 h-4 mr-1" />
+                                        Not Available
+                                      </>
+                                    ) : isGroupLocked(group) ? (
+                                      <>
+                                        <Clock className="w-4 h-4 mr-1" />
+                                        Pending Fulfillment
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                        Approve
+                                      </>
+                                    )}
                                   </Button>
 
                                   {isExpanded ? (
@@ -683,6 +717,24 @@ const ProductCart = () => {
 
                       <CollapsibleContent>
                         <CardContent className="px-4 sm:px-6 pb-6">
+                          {/* ✅ NEW: Cancelled warning banner for the whole group */}
+                          {cancelledCount > 0 && (
+                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-sm font-semibold text-red-800">
+                                  Some products are not available
+                                </p>
+                                <p className="text-xs text-red-600">
+                                  {cancelledCount} item(s) in this cart have
+                                  been cancelled and are not available in
+                                  INNOVEX. You can remove them or proceed with
+                                  the available items.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="border-t border-gray-200 pt-4 space-y-3">
                             {group.items.map((item) => {
                               const imageUrl =
@@ -691,13 +743,20 @@ const ProductCart = () => {
                                   : null;
                               const price = parseFloat(item.price || 0);
                               const total = parseFloat(item.total_amount || 0);
+                              const isCancelled = item.status === "cancelled";
 
                               return (
                                 <div
                                   key={item.id}
-                                  className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                  className={`flex flex-col sm:flex-row sm:items-center gap-4 p-3 rounded-lg transition-colors border ${
+                                    isCancelled
+                                      ? "bg-red-50/50 border-red-200"
+                                      : "bg-gray-50 border-transparent hover:bg-gray-100"
+                                  }`}
                                 >
-                                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto sm:mx-0">
+                                  <div
+                                    className={`w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 mx-auto sm:mx-0 ${isCancelled ? "bg-red-100 opacity-60" : "bg-gray-100"}`}
+                                  >
                                     {imageUrl ? (
                                       <img
                                         src={imageUrl}
@@ -719,13 +778,24 @@ const ProductCart = () => {
                                   <div className="flex-1 min-w-0">
                                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                                       <div>
-                                        <h4 className="font-medium text-gray-900">
+                                        <h4
+                                          className={`font-medium ${isCancelled ? "text-red-900 line-through" : "text-gray-900"}`}
+                                        >
                                           {item.product_name}
                                         </h4>
+
+                                        {/* ✅ NEW: Full-width warning banner inside the item */}
+                                        {isCancelled && (
+                                          <p className="text-xs text-red-600 font-semibold mt-1 flex items-center gap-1">
+                                            <AlertCircle className="w-3.5 h-3.5" />
+                                            Product is Not Available in INNOVEX
+                                          </p>
+                                        )}
+
                                         <div className="flex flex-wrap items-center gap-2 mt-1">
                                           <Badge
                                             variant="secondary"
-                                            className=" text-xs"
+                                            className={`text-xs ${isCancelled ? "bg-red-100 text-red-700" : ""}`}
                                           >
                                             {item.category}
                                           </Badge>
@@ -735,7 +805,9 @@ const ProductCart = () => {
                                         </div>
                                       </div>
                                       <div className="text-right">
-                                        <div className="text-md font-bold text-gray-900">
+                                        <div
+                                          className={`text-md font-bold ${isCancelled ? "text-red-400 line-through" : "text-gray-900"}`}
+                                        >
                                           Rs. {price.toFixed(2)}
                                         </div>
                                         {item.quantity > 1 && (
@@ -753,8 +825,13 @@ const ProductCart = () => {
                                           Added: {formatDate(item.created_at)}
                                         </span>
 
-                                        {/* ✅ Status badge */}
-                                        {item.status === "requested" ? (
+                                        {/* ✅ Status Badge Logic */}
+                                        {isCancelled ? (
+                                          <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px] font-medium">
+                                            <XCircle className="w-3 h-3 mr-1" />
+                                            Cancelled / Not Available
+                                          </Badge>
+                                        ) : item.status === "requested" ? (
                                           <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] font-medium">
                                             <Clock className="w-3 h-3 mr-1" />
                                             Pending Fulfillment
@@ -766,7 +843,7 @@ const ProductCart = () => {
                                           </Badge>
                                         )}
 
-                                        {/* ✅ Remove button — disabled for requested items */}
+                                        {/* ✅ Remove button — allow removing cancelled items */}
                                         <Button
                                           variant="ghost"
                                           size="sm"
@@ -778,12 +855,16 @@ const ProductCart = () => {
                                           title={
                                             item.status === "requested"
                                               ? "Cannot remove — waiting for fulfillment"
-                                              : ""
+                                              : isCancelled
+                                                ? "Remove cancelled item"
+                                                : ""
                                           }
                                           className={`${
                                             item.status === "requested"
                                               ? "text-gray-400 cursor-not-allowed opacity-50"
-                                              : "text-red-500 hover:text-red-700 hover:bg-red-50"
+                                              : isCancelled
+                                                ? "text-red-600 hover:text-red-700 hover:bg-red-100"
+                                                : "text-red-500 hover:text-red-700 hover:bg-red-50"
                                           }`}
                                         >
                                           {removing === item.id ? (

@@ -169,6 +169,11 @@ const menuGroups: SectionedMenuGroup[] = [
         path: "/dashboard/my-orders",
         icon: ClipboardList,
       },
+      {
+        label: "Approved Loans",
+        path: "/dashboard/approved-loans",
+        icon: ClipboardList,
+      },
     ],
   },
   {

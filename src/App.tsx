@@ -34,6 +34,7 @@ import BuyForMySelf from "./pages/Staff/BuyForMyself";
 import StaffRequests from "./pages/Staff/StaffRequestOrder";
 import MyOrders from "./pages/Staff/MyOrders";
 import ManageStaffOrders from "./pages/Staff/ManageOrders";
+import StaffLoanApprovals from "./pages/Staff/StaffLoanApprovals";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
               />
               <Route path="staff-store" element={<StaffProductDashboard />} />
               <Route path="buy" element={<BuyForMySelf />} />
+              <Route path="approved-loans" element={<StaffLoanApprovals />} />
               <Route
                 path="staff-product/:id"
                 element={<StaffSingleProduct />}
