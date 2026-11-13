@@ -23,6 +23,9 @@ import {
   Calendar,
 } from "lucide-react";
 import { compressImage } from "@/lib/compressImage";
+import { API, API_BASE_URL, APP_API_BASE_URL } from "@/apiConfig";
+import { useAuth } from "@/contexts/AuthContext";
+
 type CartItem = {
   id: number;
   product_id: string;
@@ -82,6 +85,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   approvalError,
   userId,
 }) => {
+  const { user } = useAuth();
+
   const [isEditing, setIsEditing] = useState(false);
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -95,6 +100,11 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     null,
   );
   const [agreementError, setAgreementError] = useState<string | null>(null);
+
+  // ✅ Float check state
+  const [checkingFloat, setCheckingFloat] = useState(true);
+  const [canSubmitLoan, setCanSubmitLoan] = useState(false);
+  const [floatReason, setFloatReason] = useState("");
 
   // ✅ Initialize state when modal opens or selectedGroup changes
   useEffect(() => {
@@ -110,6 +120,42 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       setAgreementBackError(null);
     }
   }, [isOpen, selectedGroup]);
+
+  // ✅ Check float status when modal opens
+  useEffect(() => {
+    if (!isOpen || !user) return;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const checkFloat = async () => {
+      setCheckingFloat(true);
+      setFloatReason("");
+      try {
+        const params = new URLSearchParams({
+          bname: user.bname || "",
+          name: user.name || "",
+          userid: String(user.id || ""),
+          date: today,
+        });
+        const res = await fetch(
+          `${APP_API_BASE_URL}/api/helper/check_float_submission?${params}`,
+        );
+        const data = await res.json();
+        setCanSubmitLoan(data.can_add === true);
+        if (!data.can_add) {
+          setFloatReason(data.reason || "Float record not found for today");
+        }
+      } catch (err) {
+        console.error("Float check failed:", err);
+        setCanSubmitLoan(false);
+        setFloatReason("Cannot connect to server");
+      } finally {
+        setCheckingFloat(false);
+      }
+    };
+
+    checkFloat();
+  }, [isOpen, user]);
 
   const calculateCourierCharge = (weight: number): number => {
     if (weight <= 0) return 0;
@@ -130,6 +176,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     const courierCharge = calculateCourierCharge(weight);
     return totalAmount + courierCharge;
   };
+
   const validateFile = (file: File): string | null => {
     const validTypes = [
       "application/pdf",
@@ -145,6 +192,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     }
     return null;
   };
+
   const processFile = async (
     file: File,
     setFile: (f: File | null) => void,
@@ -157,7 +205,6 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     }
     setErr(null);
 
-    // PDFs can't be image-compressed, keep as is
     if (file.type === "application/pdf") {
       setFile(file);
       return;
@@ -179,7 +226,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     const file = e.target.files?.[0];
     if (file)
       await processFile(file, setPurchaseAgreementFront, setAgreementError);
-    e.target.value = ""; // allows re-selecting the same file
+    e.target.value = "";
   };
 
   const handleBackFileChange = async (
@@ -190,7 +237,13 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       await processFile(file, setPurchaseAgreementBack, setAgreementBackError);
     e.target.value = "";
   };
+
   const handleSubmit = () => {
+    // ✅ Block if float check failed
+    if (!canSubmitLoan) {
+      return;
+    }
+
     try {
       if (!purchaseAgreementFront) {
         setAgreementError("Purchase Agreement is required");
@@ -205,9 +258,6 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
         return;
       }
       if (!selectedGroup) return;
-
-      // ✅ ADD ALERT TO SEE DATA
-      alert("Passing data to onApprove...");
 
       const firstItem = selectedGroup.items[0];
       const weight = parseFloat(String(firstItem?.product_weight || 0));
@@ -233,7 +283,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
         productWeight,
       });
     } catch (err: any) {
-      alert("ERROR IN MODAL: " + err.message); // ✅ SHOW ERROR ON PHONE
+      console.error("Approve error:", err);
     }
   };
 
@@ -248,11 +298,16 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     weight,
   );
   const weekPayment = selectedGroup.total_amount / periodWeeks;
-  // ✅ Document fee: Rs. 500 if total < 10,000, else Rs. 1,000
+
   const calculateDocumentFee = (totalAmount: number): number => {
     return totalAmount < 10000 ? 500 : 1000;
   };
   const documentFee = calculateDocumentFee(selectedGroup.total_amount);
+
+  // ✅ Button is disabled if: no front page, OR approving, OR float check failed, OR still checking
+  const isSubmitDisabled =
+    approving || !purchaseAgreementFront || checkingFloat || !canSubmitLoan;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
@@ -281,6 +336,30 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <X className="w-5 h-5" />
             </Button>
           </div>
+
+          {/* ✅ Float Warning Banner */}
+          {!checkingFloat && !canSubmitLoan && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-300 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-red-800">
+                  Loan Submission Disabled
+                </p>
+                <p className="text-xs text-red-600 mt-0.5">
+                  {floatReason ||
+                    "No Float record found for today. Please submit your plot first."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Float check in progress */}
+          {checkingFloat && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+              <p className="text-sm text-blue-700">Checking float status…</p>
+            </div>
+          )}
 
           {/* Error Message */}
           {approvalError && (
@@ -522,13 +601,14 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               </div>
             </div>
           </div>
+
           {agreementError && (
             <p className="text-sm text-red-500 mt-2 mb-2 flex items-center gap-1 bg-red-50 p-2 rounded border border-red-200">
               <AlertCircle className="w-3 h-3" />
               {agreementError}
             </p>
           )}
-          {/* Purchase Agreement Upload */}
+
           {/* Purchase Agreement Upload */}
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
             <div className="flex items-center gap-2 mb-3">
@@ -658,6 +738,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               </div>
             </div>
           </div>
+
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             <Button
@@ -671,13 +752,36 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
             <Button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 h-11 bg-orange-500 hover:bg-orange-600 text-white"
-              disabled={approving || !purchaseAgreementFront}
+              className={`flex-1 h-11 text-white ${
+                isSubmitDisabled
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
+              disabled={isSubmitDisabled}
+              title={
+                checkingFloat
+                  ? "Checking float status…"
+                  : !canSubmitLoan
+                    ? floatReason || "Float record not found for today"
+                    : !purchaseAgreementFront
+                      ? "Please upload the front page first"
+                      : ""
+              }
             >
               {approving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   Processing...
+                </>
+              ) : checkingFloat ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Checking...
+                </>
+              ) : !canSubmitLoan ? (
+                <>
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Loans Disabled
                 </>
               ) : (
                 <>
