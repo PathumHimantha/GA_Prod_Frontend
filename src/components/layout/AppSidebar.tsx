@@ -83,7 +83,6 @@ const menuGroups: SectionedMenuGroup[] = [
       },
       {
         label: "Loan Application",
-        path: "/dashboard/loan-application",
         icon: Package,
         onClick: handleHirePurchaseClick,
       },
