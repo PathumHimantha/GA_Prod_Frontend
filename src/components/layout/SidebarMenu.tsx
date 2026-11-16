@@ -8,6 +8,7 @@ export interface SubMenuItem {
   path: string;
   roles?: UserRole[];
   excludeRoles?: UserRole[];
+  onClick?: () => void;
 }
 
 export interface MenuGroup {
@@ -45,7 +46,7 @@ export const SidebarMenuGroup = ({
   if (visibleItems.length === 0) return null;
   if (group.roles && !hasRole(...group.roles)) return null;
 
-  const isActive = visibleItems.some((i) => activePath === i.path);
+  const isActive = visibleItems.some((i) => i.path && activePath === i.path);
 
   return (
     <div className="mb-1">
@@ -76,22 +77,33 @@ export const SidebarMenuGroup = ({
 
       {!collapsed && open && (
         <div className="ml-5 mt-1 space-y-0.5 border-l border-sidebar-border pl-3 animate-accordion-down">
-          {visibleItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path} // ← add this
-              onClick={() => onNavigate(item.path)}
-              className={`block text-sm px-3 py-2 rounded-md transition-colors duration-150
-    ${
-      activePath === item.path
-        ? "bg-sidebar-primary/15 text-sidebar-primary font-medium"
-        : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
-    }
-  `}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {visibleItems.map((item) =>
+            item.onClick ? (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  item.onClick!();
+                }}
+                className="block w-full text-left text-sm px-3 py-2 rounded-md text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors duration-150"
+              >
+                {item.label}
+              </button>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path!}
+                onClick={() => onNavigate(item.path!)}
+                className={`block text-sm px-3 py-2 rounded-md transition-colors duration-150 ${
+                  activePath === item.path
+                    ? "bg-sidebar-primary/15 text-sidebar-primary font-medium"
+                    : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
         </div>
       )}
     </div>
