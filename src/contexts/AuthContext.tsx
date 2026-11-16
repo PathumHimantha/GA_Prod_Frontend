@@ -1,3 +1,4 @@
+// purchase app: src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -16,10 +17,6 @@ export type UserRole =
   | "manager";
 
 export interface User {
-  ccode: string;
-  userid(role: any, bname: string, userid: any): unknown;
-  route: ReactNode;
-  role: any;
   id: number;
   name: string;
   email: string;
@@ -36,6 +33,9 @@ interface AuthContextType {
     email: string,
     password: string,
   ) => Promise<{ success: boolean; error?: string }>;
+  handoffLogin: (
+    token: string,
+  ) => Promise<{ success: boolean; error?: string }>; // ✅ NEW
   logout: () => void;
   hasRole: (...roles: UserRole[]) => boolean;
 }
@@ -59,7 +59,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         return { success: false, error: data.error || "Invalid credentials" };
       }
@@ -67,9 +66,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
-
       return { success: true };
-    } catch (err: any) {
+    } catch {
+      return {
+        success: false,
+        error: "Cannot connect to server. Please try again.",
+      };
+    }
+  }, []);
+
+  // ✅ NEW: Handoff login
+  const handoffLogin = useCallback(async (token: string) => {
+    try {
+      const response = await fetch(API.auth.handoffLogin, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || "Handoff login failed",
+        };
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+      return { success: true };
+    } catch {
       return {
         success: false,
         error: "Cannot connect to server. Please try again.",
@@ -93,7 +120,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, logout, hasRole }}
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        handoffLogin,
+        logout,
+        hasRole,
+      }}
     >
       {children}
     </AuthContext.Provider>

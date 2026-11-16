@@ -1,10 +1,9 @@
-import { useState } from "react";
-import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import loginBg from "@/assets/login-bg.jpg";
 import logo from "@/assets/logo.png";
-import { API } from "@/apiConfig";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,13 +11,40 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const [handoffLoading, setHandoffLoading] = useState(false); // ✅ NEW
+  const { login, handoffLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // ✅ Auto-login from ?handoff=<token>
+  useEffect(() => {
+    const handoffToken = searchParams.get("handoff");
+    if (!handoffToken) return;
+
+    // Remove token from URL immediately (prevents accidental sharing via copy-paste)
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("handoff");
+    setSearchParams(newParams, { replace: true });
+
+    setHandoffLoading(true);
+    (async () => {
+      const result = await handoffLogin(handoffToken);
+      setHandoffLoading(false);
+      if (result.success) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setError(
+          result.error ||
+            "Auto-login failed. Please log in with your credentials.",
+        );
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     const result = await login(email, password);
     if (result.success) {
       navigate("/dashboard");
@@ -27,6 +53,25 @@ const Login = () => {
     }
   };
 
+  // ✅ Show loading screen while handing off
+  if (handoffLoading) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center"
+        style={{ backgroundImage: `url(${loginBg})` }}
+      >
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4">
+          <img
+            src={logo}
+            alt="Golden Asia"
+            className="w-24 h-24 object-contain"
+          />
+          <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+          <p className="text-sm text-gray-700 font-medium">Signing you in…</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       className="min-h-screen flex items-center justify-center md:justify-end bg-cover bg-center p-4 relative"
