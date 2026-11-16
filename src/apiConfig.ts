@@ -23,7 +23,7 @@ export const API = {
     forgotPassword: `${API_BASE_URL}/api/auth/forgot-password`,
     verifyOtp: `${API_BASE_URL}/api/auth/verify-otp`,
     resetPassword: `${API_BASE_URL}/api/auth/reset-password`,
-    handoffLogin: `${API_BASE_URL}/api/auth/handoff-login`,
+    handoffLogin: `${API_BASE_URL}/auth/handoff-login`,
   },
   helper: {
     branches: `${APP_API_BASE_URL}/api/helper/branches`,
