@@ -24,8 +24,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SidebarMenuGroup, type MenuGroup } from "./SidebarMenu";
 import { useNavigate, useLocation } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import { API } from "@/apiConfig";
 
 /* ---------------- MENU CONFIG ---------------- */
+
+const handleHirePurchaseClick = async () => {
+  try {
+    // 1. Ask main app backend for a short-lived handoff token
+    const res = await fetch(`${API.auth.issueHandoffToken}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to create handoff token");
+    }
+
+    const { handoff_token } = await res.json();
+
+    // 2. Open purchase app with token in URL — new tab
+    const purchaseUrl = `https://application.goldenasia.lk/?handoff=${encodeURIComponent(
+      handoff_token,
+    )}`;
+    window.open(purchaseUrl, "_blank", "noopener,noreferrer");
+  } catch (err: any) {
+    alert(err.message || "Could not open purchase app");
+  }
+};
 
 type MenuSection = "customer" | "crew";
 
@@ -51,6 +80,12 @@ const menuGroups: SectionedMenuGroup[] = [
         label: "Product Tracking",
         path: "/dashboard/product-tracking",
         icon: MapPin,
+      },
+      {
+        label: "Loan Application",
+        path: "/dashboard/loan-application",
+        icon: Package,
+        onClick: handleHirePurchaseClick,
       },
     ],
   },
