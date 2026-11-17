@@ -29,6 +29,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type Order = {
+  document_fee: number;
   id: number;
   order_code: string;
   loan_code: string;
@@ -59,6 +60,12 @@ type Order = {
   purchase_agreement_back?: string;
   courier_slip?: string | null; // ✅ new
   courier_tracking_no?: string | null; // ✅ new
+
+  product_name?: string;
+  product_images?: string[];
+  product_category?: string;
+  product_courier_fee?: string | number;
+  product_weight?: string | number;
 };
 
 type PaginationData = {
@@ -466,13 +473,39 @@ const ManageOrders = () => {
 
   const columns: ColumnDef<Order>[] = [
     {
-      key: "order_code",
-      header: "Order Code",
-      render: (v) => (
-        <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
-          {v}
-        </span>
-      ),
+      key: "product_images",
+      header: "Product",
+      render: (_v, row) => {
+        const img = row.product_images?.[0];
+        return (
+          <div className="flex items-center gap-3">
+            {/* Product image */}
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+              {img ? (
+                <img
+                  src={img}
+                  alt={row.product_name || row.product_id}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-5 h-5 text-gray-400" />
+                </div>
+              )}
+            </div>
+
+            {/* Product name + code + order code */}
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                {row.product_name || "—"}
+              </div>
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: "courier_tracking_no",
@@ -500,19 +533,25 @@ const ManageOrders = () => {
         ),
     },
     {
+      key: "ex_contact",
+      header: "EX Contact",
+      render: (v) => <span className="text-sm text-gray-600">{v || "—"}</span>,
+    },
+    {
       key: "customer_phone",
       header: "Phone",
       render: (v) => <span className="text-sm text-gray-600">{v || "—"}</span>,
     },
     {
       key: "product_id",
-      header: "Product",
+      header: "Product ID",
       render: (v) => (
         <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
           {v}
         </span>
       ),
     },
+
     {
       key: "loan_code",
       header: "Loan Code",
@@ -523,17 +562,22 @@ const ManageOrders = () => {
         );
       },
     },
-    {
-      key: "quantity",
-      header: "Qty",
-      render: (v) => <span className="font-medium text-center">{v}</span>,
-    },
+
     {
       key: "courier_charge",
       header: "Courier",
       render: (v, row) => (
         <div className="text-sm text-gray-600">
           Rs. {getNumericValue(row.courier_charge || 0).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      key: "document_fee",
+      header: "Doc Fee",
+      render: (v, row) => (
+        <div className="text-sm text-gray-600">
+          Rs. {getNumericValue(row.document_fee || 0).toFixed(2)}
         </div>
       ),
     },
