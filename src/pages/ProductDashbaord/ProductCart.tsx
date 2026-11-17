@@ -70,6 +70,7 @@ type CustomerDetails = {
     center: string;
     ccode: string;
     bname: string;
+    loan_day: string;
     group: string;
     loan_amount: string;
     loan_balance: string;
@@ -626,6 +627,14 @@ const ProductCart = () => {
                                         className="bg-gray-50"
                                       >
                                         Branch: {customer.bname}
+                                      </Badge>
+                                    )}
+                                    {customer?.loan_day && (
+                                      <Badge
+                                        variant="outline"
+                                        className="bg-gray-50"
+                                      >
+                                        Center Day: {customer.loan_day}
                                       </Badge>
                                     )}
                                   </div>
