@@ -208,6 +208,11 @@ const menuGroups: SectionedMenuGroup[] = [
         path: "/dashboard/approved-loans",
         icon: ClipboardList,
       },
+      {
+        label: "Staff Agreement",
+        path: "/dashboard/staff-agreement",
+        icon: PackageSearch,
+      },
     ],
   },
   {

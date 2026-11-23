@@ -35,6 +35,7 @@ import StaffRequests from "./pages/Staff/StaffRequestOrder";
 import MyOrders from "./pages/Staff/MyOrders";
 import ManageStaffOrders from "./pages/Staff/ManageOrders";
 import StaffLoanApprovals from "./pages/Staff/StaffLoanApprovals";
+import StaffLoanAgreementDoc from "./pages/Staff/StaffLoanAgreementDoc";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,10 @@ const App = () => (
                 element={<StaffSingleProduct />}
               />
               <Route path="staff-requests" element={<StaffRequests />} />
+              <Route
+                path="staff-agreement"
+                element={<StaffLoanAgreementDoc />}
+              />
               <Route path="my-orders" element={<MyOrders />} />
               <Route path="manage-orders" element={<ManageStaffOrders />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
