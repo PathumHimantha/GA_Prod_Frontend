@@ -295,6 +295,18 @@ const ManageOrders = () => {
       return;
     }
 
+    const formatName = (fullName: string | null | undefined) => {
+      if (!fullName || !fullName.trim()) return "—";
+      const words = fullName.trim().split(/\s+/);
+      if (words.length <= 2) return words.join(" ").toUpperCase();
+      const initials = words
+        .slice(0, -2)
+        .map((w) => `${w[0]?.toUpperCase()}.`)
+        .join(" ");
+      const lastTwo = words.slice(-2).join(" ").toUpperCase();
+      return `${initials} ${lastTwo}`;
+    };
+
     printWindow.document.write(`
     <!DOCTYPE html>
     <html>
@@ -413,7 +425,7 @@ const ManageOrders = () => {
             <!-- TO -->
             <div class="address-block">
               <div class="tag">To</div>
-              <div class="name">${order.customer_name || "—"}</div>
+              <div class="name">${formatName(order.customer_name)}</div>
               <div class="line">${order.customer_address || "—"}</div>
               <div class="phone">Tel: ${order.customer_phone || "—"}</div>
         
