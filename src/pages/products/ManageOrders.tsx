@@ -38,6 +38,7 @@ type Order = {
   customer_name: string;
   customer_address: string;
   customer_phone: string;
+  customer_phone2?: string; // Optional second phone number
   quantity: number;
   price: string | number;
   total_amount: string | number;
@@ -428,6 +429,7 @@ const ManageOrders = () => {
               <div class="name">${formatName(order.customer_name)}</div>
               <div class="line">${order.customer_address || "—"}</div>
               <div class="phone">Tel: ${order.customer_phone || "—"}</div>
+              <div class="phone">Tel: ${order.customer_phone2 || "—"}</div>
         
             </div>
           </div>
